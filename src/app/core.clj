@@ -4,16 +4,16 @@
   (:gen-class))
 
 (defn transform [from]
-  {"test" "a"})
+  (assoc from :key "added"))
 
-(defn process-json []
-  (let [input (json/read-str (slurp "in.json"))]
-  (spit "out.json" (json/write-str (transform input)))))
+(defn process-json [[infile outfile]]
+  (let [input (json/read-str (slurp infile))]
+  (spit outfile (json/write-str (transform input)))))
 
-(defn -main [& args]
-  (let [[opts args banner] (cli args
+(defn -main [& in-args]
+  (let [[opts args banner] (cli in-args
     ["-h" "--help" "Print this help"
      :default false :flag true])]
     (when (:help opts)
-      (println banner)))
-  (process-json))
+      (println banner))
+    (process-json args)))
