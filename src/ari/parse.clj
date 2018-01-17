@@ -54,32 +54,59 @@
   ([] (just any any))
   ([k] (just any any k)))
 
+(defn just-wrapper [parser]
+  (fn [tokens] 
+    (let [result (parser (first tokens))]
+      (if result
+        (let [[token tag k] result]
+          [
+           (if (nil? k)
+             {}
+             {k [token tag]})
+           (rest tokens)])
+        nil))))
+
+; [tokens] -> {tree}, [remaining tokens]
 
 (defn inorder [given-parsers]
   (fn [tokens] (loop [parsers   given-parsers
                       remaining tokens
-                      consumed  {}]
+                      tree  {}]
                  (if (or (empty? remaining) (empty? parsers))
-                   (if (empty? consumed) nil [consumed remaining])
-                   (let [result ((first parsers) (first remaining))]
-                     (if result 
-                       (recur (rest parsers)
-                              (rest remaining)
-                              (let [[token tag k] result] 
-                                (if (nil? k)
-                                  consumed
-                                  (assoc consumed k [token tag]))))
-                       (if (empty? consumed) nil [consumed remaining])))))))
+                   (if (empty? tree) nil [tree remaining])
+                   (let [result ((first parsers) remaining)]
+                     (if (not result)
+                       (if (empty? tree) nil [tree remaining])
+                       (let [[in-tree in-remaining] result]
+                         (recur (rest parsers)
+                                in-remaining
+                                (merge tree in-tree)))))))))
+
+; (defn inorder [given-parsers]
+;   (fn [tokens] (loop [parsers   given-parsers
+;                       remaining tokens
+;                       tree  {}]
+;                  (if (or (empty? remaining) (empty? parsers))
+;                    (if (empty? tree) nil [tree remaining])
+;                    (let [result ((first parsers) (first remaining))]
+;                      (if result 
+;                        (recur (rest parsers)
+;                               (rest remaining)
+;                               (let [[token tag k] result] 
+;                                 (if (nil? k)
+;                                   tree
+;                                   (assoc tree k [token tag]))))
+;                        (if (empty? tree) nil [tree remaining])))))))
 
 ; (defn many [given-parser]
 ;   (fn [tokens] (loop [remaining tokens
-;                       consumed  {}]
+;                       tree  {}]
 ;                  (if (empty? remaining)
-;                    (if (empty? consumed) nil [consumed remaining])
+;                    (if (empty? tree) nil [tree remaining])
 ;                    (let [result (given-parser tokens)]
 ;                      (if result
 ;                        (recur )
-;                        (if (empty? consumed) nil [consumed remaining])
+;                        (if (empty? tree) nil [tree remaining])
 ; 
 ;                        )
 ;                      )
@@ -87,7 +114,7 @@
 ; 
 ;                  )))
 
-(def test-assignment (inorder [(wild :name) (token " ") (token "=" :op) (token " ") (tag "int" :value) (wild)]))
+(def test-assignment (inorder (map just-wrapper [(wild :name) (token " ") (token "=" :op) (token " ") (tag "int" :value) (wild)])))
 
 (defn parse [content]
   (println content)
