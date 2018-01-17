@@ -36,7 +36,7 @@
                  tokens
                  (str accum (first remaining))))))))
 
-(def test-tag-pairs [[#"^[0-9]*$" :int]])
+(def test-tag-pairs [[#"^[0-9]*$" "int"]])
 (def test-tag-functions (for [[re tag] test-tag-pairs] (list (fn [input] (re-matches re (str input))) tag)))
 
 (defn tag [tokens tag-vec]
@@ -44,7 +44,7 @@
     (let [result 
           (some (fn [[p tag]] (if (p token) [token tag] false)) tag-vec)]
       (if (nil? result)
-        [token :unknown]
+        [token "unknown"]
         result))))
 
 (defn lex [content]
