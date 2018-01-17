@@ -16,14 +16,13 @@
 
 ; Basic parser elements:
 ; 
-; inOrder 
-; just
-; optional
-; inverse
-; anyof
-; allof
-; anycard
-; many
+; x inOrder  
+; x just
+;   many
+;   optional
+;   inverse
+;   anyof
+;   allof
 
 (def any "*any*")
 
@@ -71,6 +70,22 @@
                                   consumed
                                   (assoc consumed k [token tag]))))
                        (if (empty? consumed) nil [consumed remaining])))))))
+
+; (defn many [given-parser]
+;   (fn [tokens] (loop [remaining tokens
+;                       consumed  {}]
+;                  (if (empty? remaining)
+;                    (if (empty? consumed) nil [consumed remaining])
+;                    (let [result (given-parser tokens)]
+;                      (if result
+;                        (recur )
+;                        (if (empty? consumed) nil [consumed remaining])
+; 
+;                        )
+;                      )
+;                    )
+; 
+;                  )))
 
 (def test-assignment (inorder [(wild :name) (token " ") (token "=" :op) (token " ") (tag "int" :value) (wild)]))
 
