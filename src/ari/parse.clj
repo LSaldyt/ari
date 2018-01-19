@@ -59,8 +59,7 @@
     (let [result (parser (first tokens))]
       (if result
         (let [[token tag k] result]
-          [
-           (if (nil? k)
+          [(if (nil? k)
              {}
              {k [token tag]})
            (rest tokens)])
@@ -82,41 +81,24 @@
                                 in-remaining
                                 (merge tree in-tree)))))))))
 
-; (defn inorder [given-parsers]
-;   (fn [tokens] (loop [parsers   given-parsers
-;                       remaining tokens
-;                       tree  {}]
-;                  (if (or (empty? remaining) (empty? parsers))
-;                    (if (empty? tree) nil [tree remaining])
-;                    (let [result ((first parsers) (first remaining))]
-;                      (if result 
-;                        (recur (rest parsers)
-;                               (rest remaining)
-;                               (let [[token tag k] result] 
-;                                 (if (nil? k)
-;                                   tree
-;                                   (assoc tree k [token tag]))))
-;                        (if (empty? tree) nil [tree remaining])))))))
-
-; (defn many [given-parser]
-;   (fn [tokens] (loop [remaining tokens
-;                       tree  {}]
-;                  (if (empty? remaining)
-;                    (if (empty? tree) nil [tree remaining])
-;                    (let [result (given-parser tokens)]
-;                      (if result
-;                        (recur )
-;                        (if (empty? tree) nil [tree remaining])
-; 
-;                        )
-;                      )
-;                    )
-; 
-;                  )))
+(defn many [given-parser]
+  (fn [tokens] (loop [remaining tokens
+                      tree  '()]
+                 (if (empty? remaining)
+                   (if (empty? tree) nil [{:values tree} remaining])
+                   (let [result (given-parser remaining)]
+                     (if (not result)
+                       (if (empty? tree) nil [{:values tree} remaining])
+                       (let [[in-tree in-remaining] result]
+                         (recur in-remaining
+                                (concat (list in-tree) tree)))))))))
 
 (def test-assignment (inorder (map just-wrapper [(wild :name) (token " ") (token "=" :op) (token " ") (tag "int" :value) (wild)])))
 
+(def test-many (inorder [(many (just-wrapper (token "."))) (just-wrapper (token "!"))]))
+
 (defn parse [content]
+  (println (test-many [["." ""] ["." ""] ["!" ""]]))
   (println content)
   (println (test-assignment content))
   content)
