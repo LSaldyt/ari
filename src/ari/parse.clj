@@ -18,11 +18,9 @@
 ; 
 ; x inOrder  
 ; x just
-;   many
-;   optional
-;   inverse
+; x many
+
 ;   anyof
-;   allof
 
 (def any "*any*")
 
@@ -93,12 +91,25 @@
                          (recur in-remaining
                                 (concat (list in-tree) tree)))))))))
 
+(defn any-of [parsers]
+  (fn [tokens] (loop [remaining-parsers parsers]
+                 (if (empty? remaining-parsers)
+                   nil
+                   (let [result ((first remaining-parsers) tokens)]
+                     (if result
+                       result
+                       (recur (rest remaining-parsers))))))))
+
 (def test-assignment (inorder (map just-wrapper [(wild :name) (token " ") (token "=" :op) (token " ") (tag "int" :value) (wild)])))
 
 (def test-many (inorder [(many (just-wrapper (token "."))) (just-wrapper (token "!"))]))
 
+(def test-any-of (any-of [(just-wrapper (token "!")) (just-wrapper (token "."))]))
+
 (defn parse [content]
   (println (test-many [["." ""] ["." ""] ["!" ""]]))
+  (println (test-any-of [["." ""]]))
+  (println (test-any-of [["!" ""]]))
   (println content)
   (println (test-assignment content))
   content)
