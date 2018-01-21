@@ -17,16 +17,19 @@
 ; (def test-tag-pairs [[#"^[0-9]*$" "int"]])
 ; (def test-parser (inorder [(wild :name) (token " ") (token "=" :op) (token " ") (tag "int" :value) (wild)]))
 
-(def separators [":" " " "(" ")" "{" "}"])
+(def separators [":" " " "(" ")" "{" "}" "'"])
 
-(def direct-token (inorder [(token "'") (token "name" :token) (token "'")]))
-(def syntax-element (inorder [(tag "name" :name) (token ":") direct-token (token "\n")]))
+(def direct-token (inorder [(token "'") (tag "name" :token) (token "'")]))
+(def syntax-element (inorder [(tag "name" :name) (token ":") direct-token (tag "newline")]))
 
 ; (def test-tag-pairs [[#"^[0-9]*$" "int"]])
 ; [_a-zA-Z][_a-zA-Z0-9]{0,30}
 ; (defn read-source [infile parser separators tag-pairs]
 
-(def tag-pairs [[#"[_a-zA-Z][_a-zA-Z0-9]{0,30}" "name"]]) 
+(def tag-pairs [[#"[_a-zA-Z][_a-zA-Z0-9]{0,30}" "name"]
+                [#"'" "quote"]
+                [#"\n" "newline"]
+                ]) 
 
 (defn metaparse [filename]
   (let [tree 
