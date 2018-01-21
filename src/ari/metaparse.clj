@@ -1,6 +1,7 @@
 (ns ari.metaparse
-  (:require [ari.parse :refer :all]
-            [ari.lex :refer [lex]]))
+  (:require [ari.lex :refer [lex]]
+            [ari.parse :refer :all]
+            [ari.translate :refer [read-source]]))
 
 ; Simple pyBNF parser-generator form for testing:
 ; name: (form)
@@ -12,8 +13,25 @@
 ; *(form) -> (many (form))
 ; `@key (form)` -> save form w/ key to AST
 
-(def form (token "test"))
-(def syntax-element (inorder [(tag "name" :name) (token ":") form]))
+; (def test-separators ["=" " " ">>>" "\n"])
+; (def test-tag-pairs [[#"^[0-9]*$" "int"]])
+; (def test-parser (inorder [(wild :name) (token " ") (token "=" :op) (token " ") (tag "int" :value) (wild)]))
 
-(defn metaparse []
-  '())
+(def separators [":" " " "(" ")" "{" "}"])
+
+(def direct-token (inorder [(token "'") (token "name" :token) (token "'")]))
+(def syntax-element (inorder [(tag "name" :name) (token ":") direct-token (token "\n")]))
+
+; (def test-tag-pairs [[#"^[0-9]*$" "int"]])
+; [_a-zA-Z][_a-zA-Z0-9]{0,30}
+; (defn read-source [infile parser separators tag-pairs]
+
+(def tag-pairs [[#"[_a-zA-Z][_a-zA-Z0-9]{0,30}" "name"]]) 
+
+(defn metaparse [filename]
+  (let [tree 
+        (read-source filename 
+                     syntax-element 
+                     separators 
+                     tag-pairs)]
+  tree))

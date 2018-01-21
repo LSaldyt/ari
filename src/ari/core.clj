@@ -27,6 +27,6 @@
      :default false :flag true])]
     (when (:help opts)
       (println banner))
-    (translate args test-parser test-separators test-tag-pairs)))
-
-; (defn translate [[infile outfile] parser separators tag-pairs]
+    (println (metaparse "data/languages/simple.lang"))
+    (let [[infile outfile] args]
+      (translate infile outfile test-parser test-separators test-tag-pairs))))
