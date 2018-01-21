@@ -1,5 +1,6 @@
 (ns ari.core
   (:require [clojure.tools.cli :refer [cli]]
+            [ari.metaparse :refer [metaparse]]
             [ari.parse :refer [parse]]
             [ari.lex :refer [lex]])
   (:gen-class))

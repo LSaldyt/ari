@@ -19,15 +19,14 @@
 ; x inOrder  
 ; x just
 ; x many
-
-;   anyof
+; x anyof
 
 (def any "*any*")
 
-(defn just 
+(defn token-matcher 
   "((just any 'int') [2 'int']) -> [token tag]"
   ([etoken etag]
-   (just etoken etag nil))
+   (token-matcher etoken etag nil))
   ([etoken etag k]
     (fn [[token tag]]
       (if (and 
@@ -35,6 +34,23 @@
             (or (= etag tag)     (= etag any)))
         [token tag k]
         nil))))
+
+(defn token-matcher-wrapper [parser]
+  (fn [tokens] 
+    (let [result (parser (first tokens))]
+      (if result
+        (let [[token tag k] result]
+          [(if (nil? k)
+             {}
+             {k [token tag]})
+           (rest tokens)])
+        nil))))
+
+(defn just 
+  ([etoken etag]
+   (just etoken etag nil))
+  ([etoken etag k]
+   (token-matcher-wrapper (token-matcher etoken etag k))))
 
 (defn tag
   ([etag]
@@ -52,16 +68,6 @@
   ([] (just any any))
   ([k] (just any any k)))
 
-(defn just-wrapper [parser]
-  (fn [tokens] 
-    (let [result (parser (first tokens))]
-      (if result
-        (let [[token tag k] result]
-          [(if (nil? k)
-             {}
-             {k [token tag]})
-           (rest tokens)])
-        nil))))
 
 ; [tokens] -> {tree}, [remaining tokens]
 
@@ -100,11 +106,11 @@
                        result
                        (recur (rest remaining-parsers))))))))
 
-(def test-assignment (inorder (map just-wrapper [(wild :name) (token " ") (token "=" :op) (token " ") (tag "int" :value) (wild)])))
+(def test-assignment (inorder [(wild :name) (token " ") (token "=" :op) (token " ") (tag "int" :value) (wild)]))
 
-(def test-many (inorder [(many (just-wrapper (token "."))) (just-wrapper (token "!"))]))
+(def test-many (inorder [(many (token ".")) (token "!")]))
 
-(def test-any-of (any-of [(just-wrapper (token "!")) (just-wrapper (token "."))]))
+(def test-any-of (any-of [(token "!") (token ".")]))
 
 (defn parse [content]
   (println (test-many [["." ""] ["." ""] ["!" ""]]))
