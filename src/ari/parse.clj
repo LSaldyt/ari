@@ -94,7 +94,7 @@
                        [{:values values} remaining]
                        (let [[in-values in-remaining] result]
                          (recur in-remaining
-                                (concat (list in-values) values)))))))))
+                                (concat values (list in-values))))))))))
 
 (defn many1 [given-parser]
   (fn [tokens]
