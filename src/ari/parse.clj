@@ -41,7 +41,7 @@
       (if result
         (let [[token tag k] result]
           [(if (nil? k)
-             {}
+             nil
              {k [token tag]})
            (rest tokens)])
         nil))))
@@ -118,6 +118,14 @@
       (if result
         result
         [{} tokens]))))
+
+(defn discard [parser]
+  (fn [tokens]
+    (let [result (parser tokens)]
+      (if result
+        (let [[tree remaining] result]
+          [nil remaining])
+        nil))))
 
 (defn sep-by [item-parser sep-parser]
   (let [result (inorder [item-parser (many (inorder [sep-parser item-parser]))])]
