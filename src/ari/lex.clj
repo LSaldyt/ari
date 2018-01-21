@@ -48,6 +48,9 @@
         result))))
 
 (defn lex [separators tag-pairs content]
-  (-> content
-      (separate separators)
-      (tag      (create-taggers tag-pairs))))
+  (let [result
+        (-> content
+            (separate separators)
+            (tag      (create-taggers tag-pairs)))]
+    ;(println result)
+    result))

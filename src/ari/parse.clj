@@ -75,37 +75,64 @@
   (fn [tokens] (loop [parsers   given-parsers
                       remaining tokens
                       tree  {}]
-                 (if (or (empty? remaining) (empty? parsers))
-                   (if (empty? tree) nil [tree remaining])
+                 (if (empty? parsers)
+                   [tree remaining]
                    (let [result ((first parsers) remaining)]
                      (if (not result)
-                       (if (empty? tree) nil [tree remaining])
+                       nil
                        (let [[in-tree in-remaining] result]
                          (recur (rest parsers)
                                 in-remaining
                                 (merge tree in-tree)))))))))
-
 (defn many [given-parser]
   (fn [tokens] (loop [remaining tokens
-                      tree  '()]
+                      values  '()]
                  (if (empty? remaining)
-                   (if (empty? tree) nil [{:values tree} remaining])
+                   [{:values values} remaining]
                    (let [result (given-parser remaining)]
                      (if (not result)
-                       (if (empty? tree) nil [{:values tree} remaining])
-                       (let [[in-tree in-remaining] result]
+                       [{:values values} remaining]
+                       (let [[in-values in-remaining] result]
                          (recur in-remaining
-                                (concat (list in-tree) tree)))))))))
+                                (concat (list in-values) values)))))))))
+
+(defn many1 [given-parser]
+  (fn [tokens]
+    (let [[tree remaining] ((many given-parser) tokens)]
+      (if (empty? (:values tree))
+        nil
+        [tree remaining]))))
 
 (defn any-of [parsers]
   (fn [tokens] (loop [remaining-parsers parsers]
                  (if (empty? remaining-parsers)
                    nil
                    (let [result ((first remaining-parsers) tokens)]
-                     (if result
+                     (if (not (nil? result))
                        result
                        (recur (rest remaining-parsers))))))))
 
+(defn optional [parser]
+  (fn [tokens] 
+    (let [result (parser tokens)]
+      (if result
+        result
+        [{} tokens]))))
+
+(defn sep-by [item-parser sep-parser]
+  (let [result (inorder [item-parser (many (inorder [sep-parser item-parser]))])]
+    result))
+
+(defn sep-by1 [item-parser sep-parser]
+  (let [result (inorder [item-parser (many1 (inorder [sep-parser item-parser]))])]
+    result))
+
+(defmacro defparser [ident parser]
+  `(defn ~ident [tokens#]
+     (let [[tree# remaining#] (~parser tokens#)]
+       (if (nil? tree#)
+         nil
+         [{(keyword '~ident) tree#} remaining#]))))
 
 (defn parse [parser content]
   (parser content))

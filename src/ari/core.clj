@@ -8,18 +8,6 @@
 (def test-separators ["=" " " ">>>" "\n"])
 (def test-tag-pairs [[#"^[0-9]*$" "int"]])
 (def test-parser (inorder [(wild :name) (token " ") (token "=" :op) (token " ") (tag "int" :value) (wild)]))
-; 
-; (def test-many (inorder [(many (token ".")) (token "!")]))
-; 
-; (def test-any-of (any-of [(token "!") (token ".")]))
-; 
-; (defn parse [content]
-;   (println (test-many [["." ""] ["." ""] ["!" ""]]))
-;   (println (test-any-of [["." ""]]))
-;   (println (test-any-of [["!" ""]]))
-;   (println content)
-;   (println (test-assignment content))
-;   content)
 
 (defn -main [& in-args]
   (let [[opts args banner] (cli in-args
@@ -27,6 +15,6 @@
      :default false :flag true])]
     (when (:help opts)
       (println banner))
-    (println (metaparse "data/languages/simple.lang"))
+    (clojure.pprint/pprint (metaparse "data/languages/simple.lang"))
     (let [[infile outfile] args]
       (translate infile outfile test-parser test-separators test-tag-pairs))))
