@@ -52,5 +52,5 @@
         (-> content
             (separate separators)
             (tag      (create-taggers tag-pairs)))]
-    ;(println result)
+    (clojure.pprint/pprint result)
     result))

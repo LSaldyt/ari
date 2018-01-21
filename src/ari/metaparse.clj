@@ -17,7 +17,7 @@
 ; (def test-tag-pairs [[#"^[0-9]*$" "int"]])
 ; (def test-parser (inorder [(wild :name) (token " ") (token "=" :op) (token " ") (tag "int" :value) (wild)]))
 
-(def separators [":" " " "(" ")" "{" "}" "'" "|" "\n" "." "!" "`" "@"])
+(def separators [":" " " "(" ")" "{" "}" "'" "|" "\n" "." "!" "`" "@" "," "="])
 
 (declare parser-part)
 
@@ -61,7 +61,28 @@
                               parser-part 
                               (tag "newline")]))
 
-(defparser bnf-file (many syntax-element))
+(defparser separator-def (inorder
+                           [(token "__separators__")
+                            (token "=")
+                            (sep-by (token any :sep) (token ","))
+                            (tag "newline")]))
+
+(defparser tagger-def (inorder
+                        [(token "__taggers__")
+                         (token "=")
+                         (token "{")
+                         (sep-by (inorder 
+                                  [(token any :regex) 
+                                   (token ":")
+                                   (token any :tag)])
+                                 (token ","))
+                         (token "}")
+                         (tag "newline")]))
+
+(defparser bnf-file (inorder 
+                      [separator-def
+                       tagger-def
+                       (many syntax-element)]))
 
 (def tag-pairs [[#"[_a-zA-Z][_a-zA-Z0-9]{0,30}" "name"]
                 [#"'" "quote"]

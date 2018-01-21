@@ -1,3 +1,5 @@
+__separators__=!,@
+__taggers__={a:b}
 a:('b'|'c')
 e:'f'
 g:'h i'
