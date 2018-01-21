@@ -106,16 +106,7 @@
                        result
                        (recur (rest remaining-parsers))))))))
 
-(def test-assignment (inorder [(wild :name) (token " ") (token "=" :op) (token " ") (tag "int" :value) (wild)]))
 
-(def test-many (inorder [(many (token ".")) (token "!")]))
+(defn parse [parser content]
+  (parser content))
 
-(def test-any-of (any-of [(token "!") (token ".")]))
-
-(defn parse [content]
-  (println (test-many [["." ""] ["." ""] ["!" ""]]))
-  (println (test-any-of [["." ""]]))
-  (println (test-any-of [["!" ""]]))
-  (println content)
-  (println (test-assignment content))
-  content)

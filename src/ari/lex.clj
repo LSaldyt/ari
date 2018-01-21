@@ -1,7 +1,5 @@
 (ns ari.lex)
 
-(def test-separators ["=" " " ">>>" "\n"])
-
 (defn front-match? [a b]
   (= (first a) (first b)))
 
@@ -36,18 +34,20 @@
                  tokens
                  (str accum (first remaining))))))))
 
-(def test-tag-pairs [[#"^[0-9]*$" "int"]])
-(def test-tag-functions (for [[re tag] test-tag-pairs] (list (fn [input] (re-matches re (str input))) tag)))
 
-(defn tag [tokens tag-vec]
+(defn create-taggers [tag-pairs]
+  (for [[re tag] tag-pairs] 
+    (list (fn [input] (re-matches re (str input))) tag)))
+
+(defn tag [tokens taggers]
   (for [token tokens] 
     (let [result 
-          (some (fn [[p tag]] (if (p token) [token tag] false)) tag-vec)]
+          (some (fn [[p tag]] (if (p token) [token tag] false)) taggers)]
       (if (nil? result)
         [token "unknown"]
         result))))
 
-(defn lex [content]
+(defn lex [separators tag-pairs content]
   (-> content
-      (separate test-separators)
-      (tag      test-tag-functions)))
+      (separate separators)
+      (tag      (create-taggers tag-pairs))))

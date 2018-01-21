@@ -1,1 +1,1 @@
-clojure.lang.LazySeq@5e60fd39
+[{:value ["2" "int"], :op ["=" "unknown"], :name ["x" "unknown"]} ()]

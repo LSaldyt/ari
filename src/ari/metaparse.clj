@@ -1,5 +1,5 @@
 (ns ari.metaparse
-  (:require [ari.parse :refer [many any-of tag token wild inorder]]
+  (:require [ari.parse :refer :all]
             [ari.lex :refer [lex]]))
 
 ; Simple pyBNF parser-generator form for testing:
