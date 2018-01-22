@@ -1,1 +1,1 @@
-[{:value ["2" "int"], :op ["=" "unknown"], :name ["x" "unknown"]} ()]
+[{:sequence ({:name ["x" "unknown"]} {:op ["=" "unknown"]} {:value ["2" "int"]})} ()]

@@ -71,19 +71,22 @@
 
 ; [tokens] -> {tree}, [remaining tokens]
 
-(defn inorder [given-parsers]
+(defn psequence [given-parsers]
   (fn [tokens] (loop [parsers   given-parsers
                       remaining tokens
-                      tree  {}]
+                      tree  '()]
                  (if (empty? parsers)
-                   [tree remaining]
+                   [{:sequence tree} remaining]
                    (let [result ((first parsers) remaining)]
                      (if (not result)
                        nil
                        (let [[in-tree in-remaining] result]
                          (recur (rest parsers)
                                 in-remaining
-                                (merge tree in-tree)))))))))
+                                (if (nil? in-tree)
+                                  tree
+                                  (concat tree (list in-tree)))))))))))
+
 (defn many [given-parser]
   (fn [tokens] (loop [remaining tokens
                       values  '()]
@@ -127,13 +130,13 @@
           [nil remaining])
         nil))))
 
-(defn sep-by [item-parser sep-parser]
-  (let [result (inorder [item-parser (many (inorder [sep-parser item-parser]))])]
-    result))
+(defn create-sep-by [one]
+  (fn [item-parser sep-parser]
+  (def first-parser (if one item-parser (optional item-parser)))
+  (psequence [first-parser (many (psequence [sep-parser item-parser]))])))
 
-(defn sep-by1 [item-parser sep-parser]
-  (let [result (inorder [item-parser (many1 (inorder [sep-parser item-parser]))])]
-    result))
+(def sep-by (create-sep-by false))
+(def sep-by1 (create-sep-by true))
 
 (defmacro defparser [ident parser]
   `(defn ~ident [tokens#]

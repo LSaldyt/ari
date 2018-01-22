@@ -15,7 +15,7 @@
 
 ; (def test-separators ["=" " " ">>>" "\n"])
 ; (def test-tag-pairs [[#"^[0-9]*$" "int"]])
-; (def test-parser (inorder [(wild :name) (token " ") (token "=" :op) (token " ") (tag "int" :value) (wild)]))
+; (def test-parser (psequence [(wild :name) (token " ") (token "=" :op) (token " ") (tag "int" :value) (wild)]))
 
 (def separators [":" " " "(" ")" "{" "}" "'" "|" "\n" "." "!" "`" "@" "," "="])
 
@@ -23,27 +23,27 @@
 
 (def whitespace (discard (many (any-of [(token " ") (token "\n")]))))
 
-(defparser direct-token (inorder 
+(defparser direct-token (psequence 
                           [(token "'") 
                            (tag "name" :token) 
                            (optional (tag "space"))
                            (optional (tag "name" :tag)) 
                            (token "'")]))
 
-(defparser or-operator (inorder 
+(defparser or-operator (psequence 
                          [(token "(")
                           (sep-by1
                             parser-part
                             (token "|"))
                           (token ")")]))
 
-(defparser many-operator (inorder 
+(defparser many-operator (psequence 
                            [(token "*")
                             (token "(")
                             parser-part
                             (token ")")]))
 
-(defparser key-operator (inorder
+(defparser key-operator (psequence
                           [(token "`")
                            (token "@")
                            (tag "name" :key)
@@ -56,22 +56,22 @@
                                 key-operator
                                 direct-token]))
 
-(defparser syntax-element (inorder [(tag "name" :name) 
+(defparser syntax-element (psequence [(tag "name" :name) 
                               (token ":") 
                               parser-part 
                               (tag "newline")]))
 
-(defparser separator-def (inorder
+(defparser separator-def (psequence
                            [(token "__separators__")
                             (token "=")
                             (sep-by (token any :sep) (token ","))
                             (tag "newline")]))
 
-(defparser tagger-def (inorder
+(defparser tagger-def (psequence
                         [(token "__taggers__")
                          (token "=")
                          (token "{")
-                         (sep-by (inorder 
+                         (sep-by (psequence 
                                   [(token any :regex) 
                                    (token ":")
                                    (token any :tag)])
@@ -79,7 +79,7 @@
                          (token "}")
                          (tag "newline")]))
 
-(defparser bnf-file (inorder 
+(defparser bnf-file (psequence 
                       [separator-def
                        tagger-def
                        (many syntax-element)]))
