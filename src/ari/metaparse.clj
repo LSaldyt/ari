@@ -84,18 +84,45 @@
                        tagger-def
                        (many syntax-element)]))
 
+(defn create-syntax-element [tree]
+  (let [{ident :name :as all} (:syntax-element tree)
+        inner (dissoc all :name)
+        inner-ident (first (keys inner))
+        inner-tree (inner-ident inner)]
+    (cond (= inner-ident :or-operator)
+          (anyof (map create-syntax-element (:values inner-tree)))
+          (= inner-ident :direct-token)
+          ;(token ))
+
+
+    inner-ident))
+
+; (:or-operator
+;  :direct-token
+;  :many-operator
+;  :key-operator)}
+
+
+(defn process-bnf-file [tree]
+  {:taggers (map #(list (first (:regex %)) (first (:tag %))) 
+                 (:values (:tagger-def (:bnf-file tree))))
+   :separators (map #(first (:sep %)) 
+                    (:values (:separator-def (:bnf-file tree))))
+   :parsers (map create-syntax-element (:values (:bnf-file tree)))
+   })
+
 (def tag-pairs [[#"[_a-zA-Z][_a-zA-Z0-9]{0,30}" "name"]
                 [#"'" "quote"]
                 [#"\n" "newline"]
                 [#" " "space"]
                 [#":" "colon"]
-                [#"\|" "operator"]
-                ]) 
+                [#"\|" "operator"] ]) 
 
 (defn metaparse [filename]
-  (let [tree 
+  (let [[tree remaining] 
         (read-source filename 
                      bnf-file 
                      separators 
                      tag-pairs)]
+  (clojure.pprint/pprint (process-bnf-file tree))
   tree))
