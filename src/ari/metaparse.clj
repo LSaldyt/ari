@@ -15,7 +15,7 @@
 
 ; (def test-separators ["=" " " ">>>" "\n"])
 ; (def test-tag-pairs [[#"^[0-9]*$" "int"]])
-; (def test-parser (psequence [(wild :name) (token " ") (token "=" :op) (token " ") (tag "int" :value) (wild)]))
+; (def test-parser (psequence-merge [(wild :name) (token " ") (token "=" :op) (token " ") (tag "int" :value) (wild)]))
 
 (def separators [":" " " "(" ")" "{" "}" "'" "|" "\n" "." "!" "`" "@" "," "="])
 
@@ -23,27 +23,27 @@
 
 (def whitespace (discard (many (any-of [(token " ") (token "\n")]))))
 
-(defparser direct-token (psequence 
+(defparser direct-token (psequence-merge
                           [(token "'") 
                            (tag "name" :token) 
                            (optional (tag "space"))
                            (optional (tag "name" :tag)) 
                            (token "'")]))
 
-(defparser or-operator (psequence 
+(defparser or-operator (psequence-merge 
                          [(token "(")
                           (sep-by1
                             parser-part
                             (token "|"))
                           (token ")")]))
 
-(defparser many-operator (psequence 
+(defparser many-operator (psequence-merge 
                            [(token "*")
                             (token "(")
                             parser-part
                             (token ")")]))
 
-(defparser key-operator (psequence
+(defparser key-operator (psequence-merge
                           [(token "`")
                            (token "@")
                            (tag "name" :key)
@@ -51,27 +51,27 @@
                            parser-part
                            (token "`")]))
 
-(defparser parser-part (any-of [or-operator
-                                many-operator
-                                key-operator
-                                direct-token]))
+(def parser-part (any-of [or-operator
+                          many-operator
+                          key-operator
+                          direct-token]))
 
-(defparser syntax-element (psequence [(tag "name" :name) 
+(defparser syntax-element (psequence-merge [(tag "name" :name) 
                               (token ":") 
                               parser-part 
                               (tag "newline")]))
 
-(defparser separator-def (psequence
+(defparser separator-def (psequence-merge
                            [(token "__separators__")
                             (token "=")
                             (sep-by (token any :sep) (token ","))
                             (tag "newline")]))
 
-(defparser tagger-def (psequence
+(defparser tagger-def (psequence-merge
                         [(token "__taggers__")
                          (token "=")
                          (token "{")
-                         (sep-by (psequence 
+                         (sep-by (psequence-merge 
                                   [(token any :regex) 
                                    (token ":")
                                    (token any :tag)])
@@ -79,7 +79,7 @@
                          (token "}")
                          (tag "newline")]))
 
-(defparser bnf-file (psequence 
+(defparser bnf-file (psequence-merge 
                       [separator-def
                        tagger-def
                        (many syntax-element)]))

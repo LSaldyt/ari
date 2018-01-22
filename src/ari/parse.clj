@@ -130,10 +130,31 @@
           [nil remaining])
         nil))))
 
+(defn unsequence [[tree remaining]] 
+  [(apply merge (:sequence tree)) remaining])
+
+(defn psequence-merge [given-parsers]
+  (fn [tokens]
+    (unsequence ((psequence given-parsers) tokens))))
+
 (defn create-sep-by [one]
   (fn [item-parser sep-parser]
-  (def first-parser (if one item-parser (optional item-parser)))
-  (psequence [first-parser (many (psequence [sep-parser item-parser]))])))
+    (fn [tokens]
+      (let [result (item-parser tokens)]
+        (if (nil? result)
+          (if one
+            nil
+            [{} tokens])
+          (let [[tree remaining] result]
+            (let [in-result 
+                  ((many (psequence [sep-parser item-parser])) 
+                   remaining)]
+              (if (nil? in-result)
+                [tree remaining]
+                (let [[in-tree in-remaining] in-result]
+                  [{:values (concat (list tree) 
+                                    (:sequence (first (:values in-tree))))} 
+                   in-remaining])))))))))
 
 (def sep-by (create-sep-by false))
 (def sep-by1 (create-sep-by true))
