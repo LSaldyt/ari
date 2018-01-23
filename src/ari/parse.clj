@@ -159,6 +159,13 @@
 (def sep-by (create-sep-by false))
 (def sep-by1 (create-sep-by true))
 
+(defmacro create-parser [ident parser]
+  `(fn [tokens#]
+     (let [[tree# remaining#] (~parser tokens#)]
+       (if (nil? tree#)
+         nil
+         [{(keyword '~ident) tree#} remaining#]))))
+
 (defmacro defparser [ident parser]
   `(defn ~ident [tokens#]
      (let [[tree# remaining#] (~parser tokens#)]

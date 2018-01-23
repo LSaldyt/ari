@@ -85,22 +85,21 @@
                        (many syntax-element)]))
 
 (defn create-syntax-element [tree]
-  (let [{ident :name :as all} (:syntax-element tree)
-        inner (dissoc all :name)
-        inner-ident (first (keys inner))
-        inner-tree (inner-ident inner)]
+  (let [inner-ident (first (keys tree))
+        inner-tree (inner-ident tree)]
     (cond (= inner-ident :or-operator)
-          (anyof (map create-syntax-element (:values inner-tree)))
+          (any-of (map create-syntax-element (:values inner-tree)))
           (= inner-ident :direct-token)
-          ;(token ))
+          (just (first (get inner-tree :token [any])) (first (get inner-tree :tag [any])))
+          (= inner-ident :key-operator)
+          (create-parser (symbol (first (:key inner-tree))) (create-syntax-element (dissoc inner-tree :key)))
+          (= inner-ident :many-operator)
+          (many (create-syntax-element inner-tree)))))
 
-
-    inner-ident))
-
-; (:or-operator
-;  :direct-token
-;  :many-operator
-;  :key-operator)}
+(defn outer-create-syntax-element [tree]
+  (let [{ident :name :as all} (:syntax-element tree)
+        inner (dissoc all :name)]
+    (create-syntax-element inner)))
 
 
 (defn process-bnf-file [tree]
@@ -108,8 +107,7 @@
                  (:values (:tagger-def (:bnf-file tree))))
    :separators (map #(first (:sep %)) 
                     (:values (:separator-def (:bnf-file tree))))
-   :parsers (map create-syntax-element (:values (:bnf-file tree)))
-   })
+   :parsers (map outer-create-syntax-element (:values (:bnf-file tree)))})
 
 (def tag-pairs [[#"[_a-zA-Z][_a-zA-Z0-9]{0,30}" "name"]
                 [#"'" "quote"]
@@ -124,5 +122,5 @@
                      bnf-file 
                      separators 
                      tag-pairs)]
-  (clojure.pprint/pprint (process-bnf-file tree))
-  tree))
+    (clojure.pprint/pprint tree)
+  (clojure.pprint/pprint (process-bnf-file tree))))
