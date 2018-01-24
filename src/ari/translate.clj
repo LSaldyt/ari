@@ -9,5 +9,5 @@
 
 (defn translate [infile outfile parser separators tag-pairs]
   (let [result (read-source infile parser separators tag-pairs)]
-    (dorun (map #(println (str "\"" % "\"")) result))
+    ;(dorun (map #(println (str "\"" % "\"")) result))
     (spit outfile result)))

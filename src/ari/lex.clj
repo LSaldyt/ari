@@ -37,9 +37,12 @@
 
 (defn create-taggers [tag-pairs]
   (for [[re tag] tag-pairs] 
-    (list (fn [input] (re-matches re (str input))) tag)))
+    (list 
+      (fn [input] 
+        (re-matches re 
+                    (str input))) tag)))
 
-(defn tag [tokens taggers]
+(defn do-tag [tokens taggers]
   (for [token tokens] 
     (let [result 
           (some (fn [[p tag]] (if (p token) [token tag] false)) taggers)]
@@ -51,6 +54,6 @@
   (let [result
         (-> content
             (separate separators)
-            (tag      (create-taggers tag-pairs)))]
-    (clojure.pprint/pprint result)
+            (do-tag (create-taggers tag-pairs)))]
+    ;(clojure.pprint/pprint result)
     result))

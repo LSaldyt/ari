@@ -113,14 +113,23 @@
                 [#"'" "quote"]
                 [#"\n" "newline"]
                 [#" " "space"]
-                [#":" "colon"]
-                [#"\|" "operator"] ]) 
+                [#"\\|" "operator"]
+                [#":" "colon"]])
 
-(defn metaparse [filename]
+(defn create-metaparser [bnf-file-tree-clean]
+  (clojure.pprint/pprint (:taggers bnf-file-tree-clean))
+  (fn [filename] (read-source filename
+                              (many (any-of (:parsers bnf-file-tree-clean)))
+                              (:separators bnf-file-tree-clean)
+                              (map #(list (re-pattern (first %)) (second %)) (:taggers bnf-file-tree-clean)))))
+
+(defn metaparse [filename testfile]
   (let [[tree remaining] 
         (read-source filename 
                      bnf-file 
                      separators 
                      tag-pairs)]
-    (clojure.pprint/pprint tree)
-  (clojure.pprint/pprint (process-bnf-file tree))))
+    ;(clojure.pprint/pprint tree)
+  (let [clean-tree (process-bnf-file tree)]
+    ;(clojure.pprint/pprint clean-tree)
+    ((create-metaparser clean-tree) testfile))))

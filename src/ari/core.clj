@@ -15,6 +15,6 @@
      :default false :flag true])]
     (when (:help opts)
       (println banner))
-    (clojure.pprint/pprint (metaparse "data/languages/simple.lang"))
+    (clojure.pprint/pprint (metaparse "data/languages/simple.lang" "data/test_simple.simp"))
     (let [[infile outfile] args]
       (translate infile outfile test-parser test-separators test-tag-pairs))))
