@@ -1,4 +1,4 @@
-(ns ari.metaparse
+(ns ari.metaparse.pybnf
   (:require [ari.lex :refer [lex]]
             [ari.parse :refer :all]
             [ari.translate :refer [read-source]]))
@@ -123,7 +123,7 @@
                               (:separators bnf-file-tree-clean)
                               (map #(list (re-pattern (first %)) (second %)) (:taggers bnf-file-tree-clean)))))
 
-(defn metaparse [filename testfile]
+(defn pybnf [filename testfile]
   (let [[tree remaining] 
         (read-source filename 
                      bnf-file 

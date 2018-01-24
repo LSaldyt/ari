@@ -1,7 +1,8 @@
 (ns ari.core
   (:require [clojure.tools.cli :refer [cli]]
             [ari.parse     :refer :all]
-            [ari.metaparse :refer [metaparse]]
+            [ari.metaparse.pybnf :refer [pybnf]]
+            [ari.metaparse.ebnf :refer [ebnf]]
             [ari.translate :refer [translate]])
   (:gen-class))
 
@@ -15,6 +16,7 @@
      :default false :flag true])]
     (when (:help opts)
       (println banner))
-    (clojure.pprint/pprint (metaparse "data/languages/simple.lang" "data/test_simple.simp"))
-    (let [[infile outfile] args]
-      (translate infile outfile test-parser test-separators test-tag-pairs))))
+    ;;(clojure.pprint/pprint (pybnf "data/languages/simple.lang" "data/test_simple.simp"))
+    (clojure.pprint/pprint (ebnf "data/languages/ebnf_test.lang"))))
+    ;(let [[infile outfile] args]
+    ;  (translate infile outfile test-parser test-separators test-tag-pairs))))
