@@ -150,13 +150,15 @@
                   ((many (psequence [sep-parser item-parser])) 
                    remaining)]
               (if (nil? in-result)
-                [tree remaining]
+                (if one
+                  nil
+                  [tree remaining])
                 (let [[in-tree in-remaining] in-result]
                   [{:values (concat (list tree) 
                                     (:sequence (first (:values in-tree))))} 
                    in-remaining])))))))))
 
-(def sep-by (create-sep-by false))
+(def sep-by  (create-sep-by false))
 (def sep-by1 (create-sep-by true))
 
 (defmacro create-parser [ident parser]

@@ -5,26 +5,18 @@
 
 ; ISO/IEC 14977 standard for EBNF
 ;
-; definition 	=
-; concatenation 	,
-; termination 	;
-; alternation 	|
-; optional 	[ ... ]
-; repetition 	{ ... }
-; grouping 	( ... )
-; terminal string 	" ... "
-; terminal string 	' ... '
-; comment 	(* ... *)
-; special sequence 	? ... ?
-; exception 	-
-
-; (defparser direct-token (psequence-merge
-;                           [(token "'") 
-;                            (tag "name" :token) 
-;                            (optional (tag "space"))
-;                            (optional (tag "name" :tag)) 
-;                            (token "'")]))
-
+; x definition 	=
+; x concatenation 	,
+; x termination 	;
+; x alternation 	|
+; x optional 	[ ... ]
+; x repetition 	{ ... }
+; x grouping 	( ... )
+; x terminal string 	" ... "
+; x terminal string 	' ... '
+;   comment 	(* ... *)
+;   special sequence 	? ... ?
+;   exception 	-
 
 (declare parser-part)
 
@@ -49,15 +41,53 @@
                          whitespace
                          ]))
 
-(defparser parser-part (psequence-merge
-                         [(token "\"")
-                          (token any :string)
-                          (token "\"")]))
+(defparser alternation (sep-by1 parser-part (token "|")))
 
+(defparser optional-form (psequence-merge 
+                           [(token "[")
+                            whitespace
+                            parser-part
+                            whitespace
+                            (token "]")]))
+
+(defparser repetition (psequence-merge
+                        [(token "{")
+                         whitespace
+                         parser-part
+                         whitespace
+                         (token "}")]))
+
+(defparser grouping (psequence-merge
+                      [(token "(")
+                       whitespace
+                       parser-part
+                       whitespace
+                       (token ")") ]))
+
+(declare terminal)
+
+(defparser concatentation (sep-by1 terminal (token ",")))
+
+(defn make-terminal [q]
+  (psequence-merge
+    [(token q)
+     (token any :string)
+     (token q)]))
+
+(defparser terminal (any-of [(make-terminal "\"") (make-terminal "'")]))
+
+(defparser parser-part (any-of 
+                         [;alternation
+                          ;optional-form
+                          ;repetition
+                          ;grouping
+                          concatentation
+                          terminal
+                          ]))
 (defn ebnf [filename]
   (let [[tree remaining] 
         (read-source filename 
                      definition
                      separators 
                      tag-pairs)]
-    tree))
+    [tree remaining]))
