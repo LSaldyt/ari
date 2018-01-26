@@ -2870,48 +2870,51 @@ net.brehaut.ClojureTools = (function (SH) {
 </script><title>ari -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name"><a href="github.com/LSaldyt/ari">ari</a></h1><h2 class="project-version">0.1.0</h2><br /><p>Ari is a continued investigation into computational linguistics.
 Basically, ari is a framework for doing programming language research. 
 Right now, it is a parser-generator, but eventually it will become a capable translator, based on glossa (github.com/LSaldyt/glossa)</p>
-</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.8.0</td></tr><tr><td class="dep-name">org.clojure/tools.cli</td><td class="dotted"><hr /></td><td class="dep-version">0.2.4</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#ari.lex">ari.lex</a></li><li><a href="#ari.core">ari.core</a></li><li><a href="#ari.metaparse.pybnf">ari.metaparse.pybnf</a></li><li><a href="#ari.metaparse.ebnf">ari.metaparse.ebnf</a></li><li><a href="#ari.translate">ari.translate</a></li><li><a href="#ari.parse">ari.parse</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#ari.lex" name="ari.lex"><h1 class="project-name">ari.lex</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(ns ari.lex)</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn front-match? [a b]
-  (= (first a) (first b)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn match-separator [content separator c]
+</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.8.0</td></tr><tr><td class="dep-name">org.clojure/tools.cli</td><td class="dotted"><hr /></td><td class="dep-version">0.2.4</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#ari.lex">ari.lex</a></li><li><a href="#ari.core">ari.core</a></li><li><a href="#ari.metaparse.pybnf">ari.metaparse.pybnf</a></li><li><a href="#ari.metaparse.ebnf">ari.metaparse.ebnf</a></li><li><a href="#ari.translate">ari.translate</a></li><li><a href="#ari.parse">ari.parse</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#ari.lex" name="ari.lex"><h1 class="project-name">ari.lex</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>General lexing module. Converts a raw text file into a list of tagged words based on defined lexical rules</p>
+</td><td class="codes"><pre class="brush: clojure">(ns ari.lex)</pre></td></tr><tr><td class="docs"><p>Check if the leading elements of two sequences match</p>
+</td><td class="codes"><pre class="brush: clojure">(defn front-match? 
+  [a b]
+  (= (first a) (first b)))</pre></td></tr><tr><td class="docs"><p>Attempt to match a single separator to a string, counting the number of characters that match.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn match-separator 
+  [content separator c]
   (cond 
     (empty? separator) [true c]
     (empty? content)   false
     (front-match? content separator) (match-separator (rest content) (rest separator) (inc c))
-    :else false))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn find-match [content separators]
+    :else false))</pre></td></tr><tr><td class="docs"><p>Attempt to match a list of separators against a string.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn find-match 
+  [content separators]
   (let [result (some #(match-separator content % 0) separators)]
     (if (nil? result)
-      [false 1]
-      result)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn separate-normal [content separators]
-  (loop [separators separators
-         remaining  content
+      [false 1] ; For uniformity
+      result)))</pre></td></tr><tr><td class="docs"><p>Break a string up by multi-character separators. Assumes that separators are in sorted order.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn separate-normal 
+  [content separators]
+  (loop [remaining  content
          tokens     '()
-         accum      ]
-    ;(println &quot;normal separate loop:&quot;)
-    ;(println &quot;remaining:&quot; remaining)
-    ;(println &quot;tokens:&quot; tokens)
-    ;(println &quot;accum:&quot; accum)
-    (let [[match n] (find-match remaining separators)]
-      (if (empty? remaining)
-        (remove #(=  %) (concat tokens (list accum)))
+         accum      &quot;&quot;]
+    (if (empty? remaining)
+      ; Return a list of non-empty tokens
+      (remove #(= &quot;&quot; %) (concat tokens (list accum))) 
+      ; Check if the current remaining string starts with a separator
+      (let [[match n] (find-match remaining separators)] 
         (if match
-          (recur separators
-                 (subs remaining n)
-                 (concat tokens (list accum (subs remaining 0 n))))
-          (recur separators
-                 (subs remaining 1)
+          ; If the remaining string starts with a separator, pull it out of the string and move onto the next part of the string
+          (recur (subs remaining n)
+                 (concat tokens (list accum (subs remaining 0 n)))
+                 &quot;&quot;)
+          ; Otherwise, move on to the next character
+          (recur (subs remaining 1)
                  tokens
                  (str accum (first remaining))))))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def special-separators [[&quot;\ &quot;\ :string] [&quot;'&quot; &quot;'&quot; :string] [&quot;#&quot; &quot;\n&quot; :comment]])</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn separate-special [content specials]
+</td><td class="codes"><pre class="brush: clojure">(def special-separators [[&quot;\ &quot;\ :string] [&quot;'&quot; &quot;'&quot; :string] [&quot;#&quot; &quot;\n&quot; :comment]])</pre></td></tr><tr><td class="docs"><p>Separate strings, comments, and other specially lexed elements from code</p>
+</td><td class="codes"><pre class="brush: clojure">(defn separate-special
+  [content specials]
   (def special-endings (into {} (for [[k v t] specials] [k v])))
   (def special-tags (into {} (for [[k v t] specials] [k t])))
   (loop [remaining content
          tokens    '()
-         accum     
+         accum     &quot;&quot;
          sep       nil] ; When sep is not nil, the function is in a string or comment
     (if (empty? remaining)
       (concat tokens (list [:normal accum :none]))
@@ -2920,7 +2923,7 @@ Right now, it is a parser-generator, but eventually it will become a capable tra
           (if match
             (recur (subs remaining n)
                    (concat tokens (list [:normal accum :none]))
-                    ;(subs remaining 0 n)
+                   &quot;&quot; ;(subs remaining 0 n)
                    (get special-endings (subs remaining 0 n)))
             (recur (subs remaining 1)
                    tokens
@@ -2934,25 +2937,29 @@ Right now, it is a parser-generator, but eventually it will become a capable tra
                                       [:special 
                                        accum ;(str accum (subs remaining 0 n))
                                        (get special-tags (subs remaining 0 n))]))
+                     &quot;&quot;
                      nil))
             (recur (subs remaining 1)
                    tokens
                    (str accum (first remaining))
-                   sep)))))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn separate [content separators]
+                   sep)))))))</pre></td></tr><tr><td class="docs"><p>Preform lexing of both special and normal separators</p>
+</td><td class="codes"><pre class="brush: clojure">(defn separate
+  [content separators]
   (let [pre-separate (separate-special content special-separators)]
     (reduce concat
       (for [[pre-tag sub-content tag] pre-separate]
         (if (= pre-tag :special)
           (list [sub-content tag])
-          (for [token (separate-normal sub-content separators)] [token :none]))))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn create-taggers [tag-pairs]
+          (for [token (separate-normal sub-content separators)] [token :none]))))))</pre></td></tr><tr><td class="docs"><p>Convert regular expressions into predicates</p>
+</td><td class="codes"><pre class="brush: clojure">(defn create-taggers 
+  [tag-pairs]
   (for [[re tag] tag-pairs] 
     (list 
       (fn [input] 
         (re-matches re 
-                    (str input))) tag)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn do-tag [tokens taggers]
+                    (str input))) tag)))</pre></td></tr><tr><td class="docs"><p>Tag a list of tokens using regex-based predicates</p>
+</td><td class="codes"><pre class="brush: clojure">(defn do-tag 
+  [tokens taggers]
   (for [[token tag] tokens] 
     (if (= tag :none)
       (let [result 
@@ -2960,20 +2967,15 @@ Right now, it is a parser-generator, but eventually it will become a capable tra
         (if (nil? result)
           [token &quot;unknown&quot;]
           result))
-      [token tag])))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn lex [separators tag-pairs content]
-  ;(println separators)
-  ;(println (separate-special &quot;this\&quot;test\&quot;this&quot; special-separators))
-  ;(println (separate-normal &quot;whoa,this&quot; separators))
-  ;(println (/ 1 0))
-  (clojure.pprint/pprint 
-    (separate &quot;whoa,this\&quot;test\&quot;this#comment\nnextline'string'test&quot; separators))
+      [token tag])))</pre></td></tr><tr><td class="docs"><p>Convert a string (file) into tagged tokens</p>
+</td><td class="codes"><pre class="brush: clojure">(defn lex 
+  [separators tag-pairs content]
   (let [result
         (-&gt; content
             (separate separators)
             (do-tag (create-taggers tag-pairs)))]
     (clojure.pprint/pprint result)
-    result))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#ari.core" name="ari.core"><h1 class="project-name">ari.core</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Translation script</p>
+    result))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#ari.core" name="ari.core"><h1 class="project-name">ari.core</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Translation script / effective test</p>
 </td><td class="codes"><pre class="brush: clojure">(ns ari.core
   (:require [clojure.tools.cli :refer [cli]]
             [ari.parse     :refer :all]

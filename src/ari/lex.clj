@@ -1,49 +1,54 @@
-(ns ari.lex)
+(ns ari.lex
+  "General lexing module. Converts a raw text file into a list of tagged words based on defined lexical rules")
 
-(defn front-match? [a b]
+(defn front-match? 
+  "Check if the leading elements of two sequences match"
+  [a b]
   (= (first a) (first b)))
 
-(defn match-separator [content separator c]
+(defn match-separator 
+  "Attempt to match a single separator to a string, counting the number of characters that match."
+  [content separator c]
   (cond 
     (empty? separator) [true c]
     (empty? content)   false
     (front-match? content separator) (match-separator (rest content) (rest separator) (inc c))
     :else false))
 
-(defn find-match [content separators]
+(defn find-match 
+  "Attempt to match a list of separators against a string."
+  [content separators]
   (let [result (some #(match-separator content % 0) separators)]
     (if (nil? result)
-      [false 1]
+      [false 1] ; For uniformity
       result)))
 
-(defn separate-normal [content separators]
-  (loop [separators separators
-         remaining  content
+(defn separate-normal 
+  "Break a string up by multi-character separators. Assumes that separators are in sorted order."
+  [content separators]
+  (loop [remaining  content
          tokens     '()
          accum      ""]
-    ;(println "normal separate loop:")
-    ;(println "remaining:" remaining)
-    ;(println "tokens:" tokens)
-    ;(println "accum:" accum)
-    (let [[match n] (find-match remaining separators)]
-      (if (empty? remaining)
-        (remove #(= "" %) (concat tokens (list accum)))
+    (if (empty? remaining)
+      ; Return a list of non-empty tokens
+      (remove #(= "" %) (concat tokens (list accum))) 
+      ; Check if the current remaining string starts with a separator
+      (let [[match n] (find-match remaining separators)] 
         (if match
-          (recur separators
-                 (subs remaining n)
+          ; If the remaining string starts with a separator, pull it out of the string and move onto the next part of the string
+          (recur (subs remaining n)
                  (concat tokens (list accum (subs remaining 0 n)))
                  "")
-          (recur separators
-                 (subs remaining 1)
+          ; Otherwise, move on to the next character
+          (recur (subs remaining 1)
                  tokens
                  (str accum (first remaining))))))))
 
 (def special-separators [["\"" "\"" :string] ["'" "'" :string] ["#" "\n" :comment]])
 
-; (defn foo [m f]
-;   (into {} (for [[k v] m] [k (f v)])))
-
-(defn separate-special [content specials]
+(defn separate-special
+  "Separate strings, comments, and other specially lexed elements from code"
+  [content specials]
   (def special-endings (into {} (for [[k v t] specials] [k v])))
   (def special-tags (into {} (for [[k v t] specials] [k t])))
   (loop [remaining content
@@ -78,7 +83,9 @@
                    (str accum (first remaining))
                    sep)))))))
 
-(defn separate [content separators]
+(defn separate
+  "Preform lexing of both special and normal separators"
+  [content separators]
   (let [pre-separate (separate-special content special-separators)]
     (reduce concat
       (for [[pre-tag sub-content tag] pre-separate]
@@ -86,14 +93,18 @@
           (list [sub-content tag])
           (for [token (separate-normal sub-content separators)] [token :none]))))))
 
-(defn create-taggers [tag-pairs]
+(defn create-taggers 
+  "Convert regular expressions into predicates"
+  [tag-pairs]
   (for [[re tag] tag-pairs] 
     (list 
       (fn [input] 
         (re-matches re 
                     (str input))) tag)))
 
-(defn do-tag [tokens taggers]
+(defn do-tag 
+  "Tag a list of tokens using regex-based predicates"
+  [tokens taggers]
   (for [[token tag] tokens] 
     (if (= tag :none)
       (let [result 
@@ -103,13 +114,9 @@
           result))
       [token tag])))
 
-(defn lex [separators tag-pairs content]
-  ;(println separators)
-  ;(println (separate-special "this\"test\"this" special-separators))
-  ;(println (separate-normal "whoa,this" separators))
-  ;(println (/ 1 0))
-  (clojure.pprint/pprint 
-    (separate "whoa,this\"test\"this#comment\nnextline'string'test" separators))
+(defn lex 
+  "Convert a string (file) into tagged tokens"
+  [separators tag-pairs content]
   (let [result
         (-> content
             (separate separators)
