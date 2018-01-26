@@ -34,6 +34,36 @@
                  tokens
                  (str accum (first remaining))))))))
 
+(defn separate-special [content]
+  (loop [remaining content
+         tokens    '()
+         accum     ""
+         sep       nil] ; When sep is not nil, the function is in a string or comment
+    (if (empty? remaining)
+      (concat tokens (list accum))
+      (if (nil? sep)
+        (let [[match n] (find-match remaining ["\""])]
+          (if match
+            (recur (subs remaining n)
+                   (concat tokens (list accum))
+                   (subs remaining 0 n)
+                   (subs remaining 0 n))
+            (recur (apply str (rest remaining))
+                   tokens
+                   (str accum (first remaining))
+                   sep)))
+        (let [result (match-separator remaining sep 0)]
+          (if result 
+            (let [[match n] result] 
+              (recur (subs remaining n)
+                     (concat tokens (list (str accum (subs remaining 0 n))))
+                     ""
+                     nil))
+            (recur (apply str (rest remaining))
+                   tokens
+                   (str accum (first remaining))
+                   sep)))))))
+
 
 (defn create-taggers [tag-pairs]
   (for [[re tag] tag-pairs] 
@@ -51,6 +81,7 @@
         result))))
 
 (defn lex [separators tag-pairs content]
+  (println (separate-special "this\"test\"this"))
   (let [result
         (-> content
             (separate separators)
