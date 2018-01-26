@@ -32,11 +32,8 @@
 
 (defparser definition (psequence-merge
                         [(tag "name" :name)
-                         whitespace
                          (token "=")
-                         whitespace
                          parser-part
-                         whitespace
                          (token ";")
                          whitespace
                          ]))
@@ -66,7 +63,9 @@
 
 (declare terminal)
 
-(defparser concatentation (sep-by1 terminal (token ",")))
+(defparser concatenation (sep-by1 terminal (token ",")))
+
+;(defparser concatenation (psequence-merge [terminal (token ",") terminal]))
 
 (defn make-terminal [q]
   (psequence-merge
@@ -81,13 +80,13 @@
                           ;optional-form
                           ;repetition
                           ;grouping
-                          concatentation
+                          concatenation
                           terminal
                           ]))
 (defn ebnf [filename]
   (let [[tree remaining] 
         (read-source filename 
-                     definition
+                     (many definition)
                      separators 
                      tag-pairs)]
     [tree remaining]))
