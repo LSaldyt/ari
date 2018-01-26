@@ -16,7 +16,7 @@
       [false 1]
       result)))
 
-(defn separate [content separators]
+(defn separate-normal [content separators]
   (loop [separators separators
          remaining  content
          tokens     '()
@@ -34,20 +34,28 @@
                  tokens
                  (str accum (first remaining))))))))
 
-(defn separate-special [content]
+(def special-separators [["\"" "\"" :string]])
+
+; (defn foo [m f]
+;   (into {} (for [[k v] m] [k (f v)])))
+
+
+(defn separate-special [content specials]
+  (def special-endings (into {} (for [[k v t] specials] [k v])))
+  (def special-tags (into {} (for [[k v t] specials] [k t])))
   (loop [remaining content
          tokens    '()
          accum     ""
          sep       nil] ; When sep is not nil, the function is in a string or comment
     (if (empty? remaining)
-      (concat tokens (list accum))
+      (concat tokens (list [:normal accum :none]))
       (if (nil? sep)
-        (let [[match n] (find-match remaining ["\""])]
+        (let [[match n] (find-match remaining (map first specials))]
           (if match
             (recur (subs remaining n)
-                   (concat tokens (list accum))
+                   (concat tokens (list [:normal accum :none]))
                    (subs remaining 0 n)
-                   (subs remaining 0 n))
+                   (get special-endings (subs remaining 0 n)))
             (recur (apply str (rest remaining))
                    tokens
                    (str accum (first remaining))
@@ -56,7 +64,10 @@
           (if result 
             (let [[match n] result] 
               (recur (subs remaining n)
-                     (concat tokens (list (str accum (subs remaining 0 n))))
+                     (concat tokens (list 
+                                      [:special 
+                                       (str accum (subs remaining 0 n))
+                                       (get special-tags (subs remaining 0 n))]))
                      ""
                      nil))
             (recur (apply str (rest remaining))
@@ -64,6 +75,14 @@
                    (str accum (first remaining))
                    sep)))))))
 
+(defn separate [content separators]
+  (let [pre-separate (separate-special content special-separators)]
+    (println pre-separate)
+    (reduce concat
+      (for [[pre-tag sub-content tag] pre-separate]
+        (if (= pre-tag :special)
+          (list [sub-content tag])
+          (for [token (separate-normal sub-content separators)] [token :none]))))))
 
 (defn create-taggers [tag-pairs]
   (for [[re tag] tag-pairs] 
@@ -73,15 +92,19 @@
                     (str input))) tag)))
 
 (defn do-tag [tokens taggers]
-  (for [token tokens] 
-    (let [result 
-          (some (fn [[p tag]] (if (p token) [token tag] false)) taggers)]
-      (if (nil? result)
-        [token "unknown"]
-        result))))
+  (for [[token tag] tokens] 
+    (if (= tag :none)
+      (let [result 
+            (some (fn [[p tag]] (if (p token) [token tag] false)) taggers)]
+        (if (nil? result)
+          [token "unknown"]
+          result))
+      [token tag])))
 
 (defn lex [separators tag-pairs content]
-  (println (separate-special "this\"test\"this"))
+  (println separators)
+  (println (separate-special "this\"test\"this" special-separators))
+  (println (separate "whoa,this\"test\"this" separators))
   (let [result
         (-> content
             (separate separators)
