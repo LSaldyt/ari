@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html><head><meta charset="utf-8" content="text/html" http-equiv="Content-Type" /><meta content="Multi-language parser" name="description" /><style type="text/css">/**
+<html><head><meta charset="utf-8" content="text/html" http-equiv="Content-Type" /><meta content="Ari is a continued investigation into computational linguistics.
+Basically, ari is a framework for doing programming language research. 
+Right now, it is a parser-generator, but eventually it will become a capable translator, based on glossa (github.com/LSaldyt/glossa)" name="description" /><style type="text/css">/**
  * SyntaxHighlighter
  * http://alexgorbatchev.com/SyntaxHighlighter
  *
@@ -2865,7 +2867,9 @@ net.brehaut.ClojureTools = (function (SH) {
     build_tree: build_tree
   };
 })(SyntaxHighlighter);
-</script><title>runs -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name"><a href="github.com/LSaldyt/ari">runs</a></h1><h2 class="project-version">0.1.0</h2><br /><p>Multi-language parser</p>
+</script><title>ari -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name"><a href="github.com/LSaldyt/ari">ari</a></h1><h2 class="project-version">0.1.0</h2><br /><p>Ari is a continued investigation into computational linguistics.
+Basically, ari is a framework for doing programming language research. 
+Right now, it is a parser-generator, but eventually it will become a capable translator, based on glossa (github.com/LSaldyt/glossa)</p>
 </div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.8.0</td></tr><tr><td class="dep-name">org.clojure/tools.cli</td><td class="dotted"><hr /></td><td class="dep-version">0.2.4</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#ari.lex">ari.lex</a></li><li><a href="#ari.core">ari.core</a></li><li><a href="#ari.metaparse.pybnf">ari.metaparse.pybnf</a></li><li><a href="#ari.metaparse.ebnf">ari.metaparse.ebnf</a></li><li><a href="#ari.translate">ari.translate</a></li><li><a href="#ari.parse">ari.parse</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#ari.lex" name="ari.lex"><h1 class="project-name">ari.lex</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns ari.lex)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn front-match? [a b]
@@ -2969,7 +2973,7 @@ net.brehaut.ClojureTools = (function (SH) {
             (separate separators)
             (do-tag (create-taggers tag-pairs)))]
     (clojure.pprint/pprint result)
-    result))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#ari.core" name="ari.core"><h1 class="project-name">ari.core</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+    result))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#ari.core" name="ari.core"><h1 class="project-name">ari.core</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Translation script</p>
 </td><td class="codes"><pre class="brush: clojure">(ns ari.core
   (:require [clojure.tools.cli :refer [cli]]
             [ari.parse     :refer :all]

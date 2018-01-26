@@ -1,4 +1,5 @@
 (ns ari.core
+  "Translation script"
   (:require [clojure.tools.cli :refer [cli]]
             [ari.parse     :refer :all]
             [ari.metaparse.pybnf :refer [pybnf]]
