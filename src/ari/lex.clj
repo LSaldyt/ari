@@ -21,9 +21,13 @@
          remaining  content
          tokens     '()
          accum      ""]
+    ;(println "normal separate loop:")
+    ;(println "remaining:" remaining)
+    ;(println "tokens:" tokens)
+    ;(println "accum:" accum)
     (let [[match n] (find-match remaining separators)]
       (if (empty? remaining)
-        (remove #(= "" %) (concat tokens accum))
+        (remove #(= "" %) (concat tokens (list accum)))
         (if match
           (recur separators
                  (subs remaining n)
@@ -34,11 +38,10 @@
                  tokens
                  (str accum (first remaining))))))))
 
-(def special-separators [["\"" "\"" :string]])
+(def special-separators [["\"" "\"" :string] ["'" "'" :string] ["#" "\n" :comment]])
 
 ; (defn foo [m f]
 ;   (into {} (for [[k v] m] [k (f v)])))
-
 
 (defn separate-special [content specials]
   (def special-endings (into {} (for [[k v t] specials] [k v])))
@@ -54,9 +57,9 @@
           (if match
             (recur (subs remaining n)
                    (concat tokens (list [:normal accum :none]))
-                   (subs remaining 0 n)
+                   "" ;(subs remaining 0 n)
                    (get special-endings (subs remaining 0 n)))
-            (recur (apply str (rest remaining))
+            (recur (subs remaining 1)
                    tokens
                    (str accum (first remaining))
                    sep)))
@@ -66,18 +69,17 @@
               (recur (subs remaining n)
                      (concat tokens (list 
                                       [:special 
-                                       (str accum (subs remaining 0 n))
+                                       accum ;(str accum (subs remaining 0 n))
                                        (get special-tags (subs remaining 0 n))]))
                      ""
                      nil))
-            (recur (apply str (rest remaining))
+            (recur (subs remaining 1)
                    tokens
                    (str accum (first remaining))
                    sep)))))))
 
 (defn separate [content separators]
   (let [pre-separate (separate-special content special-separators)]
-    (println pre-separate)
     (reduce concat
       (for [[pre-tag sub-content tag] pre-separate]
         (if (= pre-tag :special)
@@ -102,9 +104,12 @@
       [token tag])))
 
 (defn lex [separators tag-pairs content]
-  (println separators)
-  (println (separate-special "this\"test\"this" special-separators))
-  (println (separate "whoa,this\"test\"this" separators))
+  ;(println separators)
+  ;(println (separate-special "this\"test\"this" special-separators))
+  ;(println (separate-normal "whoa,this" separators))
+  ;(println (/ 1 0))
+  (clojure.pprint/pprint 
+    (separate "whoa,this\"test\"this#comment\nnextline'string'test" separators))
   (let [result
         (-> content
             (separate separators)
