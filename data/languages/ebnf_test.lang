@@ -1,2 +1,2 @@
-x="y";
-twelve="1","2";
+multi = {"a", "b"};
+identifier = letter , { letter | digit | "_" } ;

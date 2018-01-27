@@ -2974,7 +2974,7 @@ Right now, it is a parser-generator, but eventually it will become a capable tra
         (-&gt; content
             (separate separators)
             (do-tag (create-taggers tag-pairs)))]
-    (clojure.pprint/pprint result)
+    ;(clojure.pprint/pprint result)
     result))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#ari.core" name="ari.core"><h1 class="project-name">ari.core</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Translation script / effective test</p>
 </td><td class="codes"><pre class="brush: clojure">(ns ari.core
   (:require [clojure.tools.cli :refer [cli]]
@@ -2993,7 +2993,8 @@ Right now, it is a parser-generator, but eventually it will become a capable tra
     (when (:help opts)
       (println banner))
     ;;(clojure.pprint/pprint (pybnf &quot;data/languages/simple.lang&quot; &quot;data/test_simple.simp&quot;))
-    (clojure.pprint/pprint (ebnf &quot;data/languages/ebnf_test.lang&quot;))))</pre></td></tr><tr><td class="docs"><p>(let [[infile outfile] args]
+    (clojure.pprint/pprint (ebnf &quot;data/languages/ebnf_test.lang&quot;))
+    (clojure.pprint/pprint (ebnf &quot;data/languages/ebnf.lang&quot;))))</pre></td></tr><tr><td class="docs"><p>(let [[infile outfile] args]
  (translate infile outfile test-parser test-separators test-tag-pairs))))</p>
 </td><td class="codes"></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#ari.metaparse.pybnf" name="ari.metaparse.pybnf"><h1 class="project-name">ari.metaparse.pybnf</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns ari.metaparse.pybnf
@@ -3110,50 +3111,53 @@ Right now, it is a parser-generator, but eventually it will become a capable tra
                 [#&quot;\n&quot; &quot;newline&quot;]
                 [#&quot; &quot; &quot;space&quot;]
                 [#&quot;\\|&quot; &quot;operator&quot;]
-                [#&quot;:&quot; &quot;colon&quot;]])
-(def whitespace (optional (discard (many (any-of [(token &quot; &quot;) (token &quot;\n&quot;)])))))</pre></td></tr><tr><td class="docs">
+                [#&quot;:&quot; &quot;colon&quot;]])</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def whitespace (optional (discard (many (any-of [(tag &quot;space&quot;) (tag &quot;newline&quot;)])))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defparser terminal (tag :string :string))
+(defparser identifier (tag :name :name))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defparser element (any-of [terminal identifier]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defparser definition (psequence-merge
-                        [(tag &quot;name&quot; :name)
+                        [identifier
+                         whitespace
                          (token &quot;=&quot;)
+                         whitespace
                          parser-part
+                         whitespace
                          (token &quot;;&quot;)
                          whitespace
                          ]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defparser alternation (sep-by1 parser-part (token &quot;|&quot;)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defparser alternation (sep-by1 element
+                                (discard 
+                                  (psequence-merge [whitespace (token &quot;|&quot;) whitespace]))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defparser optional-form (psequence-merge 
                            [(token &quot;[&quot;)
                             whitespace
-                            parser-part
+                            ;parser-part
+                            terminal
                             whitespace
                             (token &quot;]&quot;)]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defparser repetition (psequence-merge
                         [(token &quot;{&quot;)
                          whitespace
-                         parser-part
+                         ;parser-part
+                         terminal
                          whitespace
                          (token &quot;}&quot;)]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defparser grouping (psequence-merge
                       [(token &quot;(&quot;)
                        whitespace
-                       parser-part
+                       terminal
                        whitespace
                        (token &quot;)&quot;) ]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(declare terminal)</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defparser concatenation (sep-by1 terminal (token &quot;,&quot;)))</pre></td></tr><tr><td class="docs"><p>(defparser concatenation (psequence-merge [terminal (token ",") terminal]))</p>
-</td><td class="codes"></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn make-terminal [q]
-  (psequence-merge
-    [(token q)
-     (token any :string)
-     (token q)]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defparser terminal (any-of [(make-terminal &quot;\) (make-terminal &quot;'&quot;)]))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defparser concatenation (sep-by1 terminal (token &quot;,&quot;)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defparser parser-part (any-of 
-                         [;alternation
-                          ;optional-form
-                          ;repetition
-                          ;grouping
+                         [alternation
+                          optional-form
+                          repetition
+                          grouping
                           concatenation
                           terminal
+                          whitespace
                           ]))
 (defn ebnf [filename]
   (let [[tree remaining] 
@@ -3271,6 +3275,8 @@ Right now, it is a parser-generator, but eventually it will become a capable tra
 </td><td class="codes"><pre class="brush: clojure">(defn psequence-merge [given-parsers]
   (fn [tokens]
     (unsequence ((psequence given-parsers) tokens))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn extract-sequences [tree]
+  (map #(first (:sequence %)) (:values tree)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn create-sep-by [one]
   (fn [item-parser sep-parser]
     (fn [tokens]
@@ -3281,7 +3287,7 @@ Right now, it is a parser-generator, but eventually it will become a capable tra
             [{} tokens])
           (let [[tree remaining] result]
             (let [in-result 
-                  ((many (psequence [sep-parser item-parser])) 
+                  (((if one many1 many) (psequence [sep-parser item-parser])) 
                    remaining)]
               (if (nil? in-result)
                 (if one
@@ -3289,7 +3295,7 @@ Right now, it is a parser-generator, but eventually it will become a capable tra
                   [tree remaining])
                 (let [[in-tree in-remaining] in-result]
                   [{:values (concat (list tree) 
-                                    (:sequence (first (:values in-tree))))} 
+                                    (extract-sequences in-tree))} 
                    in-remaining])))))))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def sep-by  (create-sep-by false))
 (def sep-by1 (create-sep-by true))</pre></td></tr><tr><td class="docs">
