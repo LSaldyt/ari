@@ -137,6 +137,9 @@
   (fn [tokens]
     (unsequence ((psequence given-parsers) tokens))))
 
+(defn extract-sequences [tree]
+  (map #(first (:sequence %)) (:values tree)))
+
 (defn create-sep-by [one]
   (fn [item-parser sep-parser]
     (fn [tokens]
@@ -147,7 +150,7 @@
             [{} tokens])
           (let [[tree remaining] result]
             (let [in-result 
-                  ((many (psequence [sep-parser item-parser])) 
+                  (((if one many1 many) (psequence [sep-parser item-parser])) 
                    remaining)]
               (if (nil? in-result)
                 (if one
@@ -155,7 +158,7 @@
                   [tree remaining])
                 (let [[in-tree in-remaining] in-result]
                   [{:values (concat (list tree) 
-                                    (:sequence (first (:values in-tree))))} 
+                                    (extract-sequences in-tree))} 
                    in-remaining])))))))))
 
 (def sep-by  (create-sep-by false))

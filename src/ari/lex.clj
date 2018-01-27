@@ -121,5 +121,5 @@
         (-> content
             (separate separators)
             (do-tag (create-taggers tag-pairs)))]
-    (clojure.pprint/pprint result)
+    ;(clojure.pprint/pprint result)
     result))

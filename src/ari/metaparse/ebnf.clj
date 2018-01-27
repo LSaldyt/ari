@@ -19,6 +19,7 @@
 ;   exception 	-
 
 (declare parser-part)
+(declare terminal)
 
 (def separators [":" " " "(" ")" "{" "}" "'" "|" "\n" "." "!" "`" "@" "," "=" "\""])
 (def tag-pairs [[#"[_a-zA-Z][_a-zA-Z0-9]{0,30}" "name"]
@@ -28,60 +29,59 @@
                 [#" " "space"]
                 [#"\\|" "operator"]
                 [#":" "colon"]])
-(def whitespace (optional (discard (many (any-of [(token " ") (token "\n")])))))
+
+(def whitespace (optional (discard (many (any-of [(tag "space") (tag "newline")])))))
 
 (defparser definition (psequence-merge
                         [(tag "name" :name)
+                         whitespace
                          (token "=")
+                         whitespace
                          parser-part
+                         whitespace
                          (token ";")
                          whitespace
                          ]))
 
-(defparser alternation (sep-by1 parser-part (token "|")))
+(defparser alternation (sep-by1 terminal 
+                                (discard 
+                                  (psequence-merge [whitespace (token "|") whitespace]))))
 
 (defparser optional-form (psequence-merge 
                            [(token "[")
                             whitespace
-                            parser-part
+                            ;parser-part
+                            terminal
                             whitespace
                             (token "]")]))
 
 (defparser repetition (psequence-merge
                         [(token "{")
                          whitespace
-                         parser-part
+                         ;parser-part
+                         terminal
                          whitespace
                          (token "}")]))
 
 (defparser grouping (psequence-merge
                       [(token "(")
                        whitespace
-                       parser-part
+                       terminal
                        whitespace
                        (token ")") ]))
 
-(declare terminal)
-
 (defparser concatenation (sep-by1 terminal (token ",")))
 
-;(defparser concatenation (psequence-merge [terminal (token ",") terminal]))
-
-(defn make-terminal [q]
-  (psequence-merge
-    [(token q)
-     (token any :string)
-     (token q)]))
-
-(defparser terminal (any-of [(make-terminal "\"") (make-terminal "'")]))
+(defparser terminal (tag :string :string))
 
 (defparser parser-part (any-of 
-                         [;alternation
-                          ;optional-form
-                          ;repetition
-                          ;grouping
+                         [alternation
+                          optional-form
+                          repetition
+                          grouping
                           concatenation
                           terminal
+                          whitespace
                           ]))
 (defn ebnf [filename]
   (let [[tree remaining] 
