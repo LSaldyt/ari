@@ -43,18 +43,9 @@
 (declare grouping)
 (declare repetition)
 (declare optional-form)
+(declare elements)
 
-(defparser simple-element (any-of [terminal
-                                   identifier]))
-
-(defparser element (any-of [grouping
-                            repetition
-                            optional-form
-                            alternation
-                            concatenation
-                            terminal 
-                            identifier
-                            ]))
+(defparser element (any-of elements))
 
 (defparser definition (psequence-merge
                         [identifier
@@ -66,20 +57,13 @@
                          (token ";")
                          whitespace]))
 
-(defparser alt-element (any-of [grouping
-                            repetition
-                            optional-form
-                            concatenation
-                            terminal 
-                            identifier
-                            ]))
+(defparser alt-element (any-except elements alternation))
 
 (defparser alternation (sep-by1 alt-element (white (token "|"))))
 
 (defparser optional-form (psequence-merge 
                            [(token "[")
                             whitespace
-                            ;parser-part
                             terminal
                             whitespace
                             (token "]")]))
@@ -87,7 +71,6 @@
 (defparser repetition (psequence-merge
                         [(token "{")
                          whitespace
-                         ;parser-part
                          element
                          whitespace
                          (token "}")]))
@@ -95,16 +78,11 @@
 (defparser grouping (psequence-merge
                       [(token "(")
                        whitespace
-                       terminal
+                       element
                        whitespace
                        (token ")") ]))
 
-(defparser con-element (any-of [grouping
-                            repetition
-                            optional-form
-                            terminal 
-                            identifier
-                            ]))
+(defparser con-element (any-except elements concatenation alternation))
 
 (defparser concatenation (sep-by1 con-element (white (token ","))))
 
@@ -118,6 +96,16 @@
                           terminal
                           whitespace
                           ]))
+
+; So that elements is a list of legit, defined functions
+(def elements [grouping
+               repetition
+               optional-form
+               alternation
+               concatenation
+               terminal
+               identifier])
+
 (defn ebnf [filename]
   (let [[tree remaining] 
         (read-source filename 

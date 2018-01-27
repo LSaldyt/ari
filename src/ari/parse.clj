@@ -115,6 +115,24 @@
                        result
                        (recur (rest remaining-parsers))))))))
 
+(defn- demunge-fn
+  [fn-object]
+  (let [dem-fn (str fn-object)
+        pretty (second (re-find #"(.*?\/.*?)[\-\-|@].*" dem-fn))]
+    (if pretty pretty dem-fn)))
+
+(defn- fn-name [fn-object]
+  (let [s (demunge-fn fn-object)]
+    (subs s 0 (- (count s) 9))))
+
+(defn any-except [parsers & out-parsers]
+  ; (println (map fn-name parsers))
+  ; (println (map fn-name out-parsers))
+  ; (println (map fn-name (remove #(apply = (fn-name %) (map fn-name out-parsers)) parsers)))
+  (any-of (remove 
+            (fn [x] 
+              (some #(= (fn-name x) (fn-name %)) out-parsers)) parsers)))
+
 (defn optional [parser]
   (fn [tokens] 
     (let [result (parser tokens)]
