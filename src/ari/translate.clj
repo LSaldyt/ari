@@ -2,12 +2,12 @@
   (:require [ari.parse :refer [parse]]
             [ari.lex :refer [lex]]))
 
-(defn read-source [infile parser separators tag-pairs]
+(defn read-source [infile parser separators special-separators tag-pairs]
   (->> (slurp infile)
-       (lex separators tag-pairs)
+       (lex separators special-separators tag-pairs)
        (parse parser)))
 
-(defn translate [infile outfile parser separators tag-pairs]
-  (let [result (read-source infile parser separators tag-pairs)]
+(defn translate [infile outfile parser separators special-separators tag-pairs]
+  (let [result (read-source infile parser separators special-separators tag-pairs)]
     ;(dorun (map #(println (str "\"" % "\"")) result))
     (spit outfile result)))

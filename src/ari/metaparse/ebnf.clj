@@ -18,8 +18,6 @@
 ;   special sequence 	? ... ?
 ;   exception 	-
 
-(declare parser-part)
-
 (def separators [":" " " "(" ")" "{" "}" "'" "|" "\n" "." "!" "`" "@" "," "=" "\""])
 (def tag-pairs [[#"[_a-zA-Z][_a-zA-Z0-9]{0,30}" "name"]
                 [#"'" "quote"]
@@ -52,7 +50,7 @@
                          whitespace
                          (token "=")
                          whitespace
-                         parser-part
+                         element
                          whitespace
                          (token ";")
                          whitespace]))
@@ -86,17 +84,6 @@
 
 (defparser concatenation (sep-by1 con-element (white (token ","))))
 
-(defparser parser-part (any-of 
-                         [alternation
-                          optional-form
-                          repetition
-                          grouping
-                          concatenation
-                          identifier
-                          terminal
-                          whitespace
-                          ]))
-
 ; So that elements is a list of legit, defined functions
 (def elements [grouping
                repetition
@@ -106,10 +93,13 @@
                terminal
                identifier])
 
+(def special-separators [["\"" "\"" :string] ["'" "'" :string] ["(*" "*)" :comment]])
+
 (defn ebnf [filename]
   (let [[tree remaining] 
         (read-source filename 
                      (many definition)
                      separators 
+                     special-separators
                      tag-pairs)]
     [tree remaining]))

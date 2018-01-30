@@ -44,7 +44,6 @@
                  tokens
                  (str accum (first remaining))))))))
 
-(def special-separators [["\"" "\"" :string] ["'" "'" :string] ["#" "\n" :comment]])
 
 (defn separate-special
   "Separate strings, comments, and other specially lexed elements from code"
@@ -85,7 +84,7 @@
 
 (defn separate
   "Preform lexing of both special and normal separators"
-  [content separators]
+  [content separators special-separators]
   (let [pre-separate (separate-special content special-separators)]
     (reduce concat
       (for [[pre-tag sub-content tag] pre-separate]
@@ -114,12 +113,13 @@
           result))
       [token tag])))
 
+
 (defn lex 
   "Convert a string (file) into tagged tokens"
-  [separators tag-pairs content]
+  [separators special-separators tag-pairs content]
   (let [result
         (-> content
-            (separate separators)
+            (separate separators special-separators)
             (do-tag (create-taggers tag-pairs)))]
     ;(clojure.pprint/pprint result)
     result))

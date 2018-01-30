@@ -116,6 +116,8 @@
                 [#"\\|" "operator"]
                 [#":" "colon"]])
 
+(def special-separators [["\"" "\"" :string] ["'" "'" :string] ["#" "\n" :comment]])
+
 (defn create-metaparser [bnf-file-tree-clean]
   (clojure.pprint/pprint (:taggers bnf-file-tree-clean))
   (fn [filename] (read-source filename
@@ -128,6 +130,7 @@
         (read-source filename 
                      bnf-file 
                      separators 
+                     special-separators
                      tag-pairs)]
     ;(clojure.pprint/pprint tree)
   (let [clean-tree (process-bnf-file tree)]

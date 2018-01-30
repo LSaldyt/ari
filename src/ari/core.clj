@@ -11,6 +11,8 @@
 (def test-tag-pairs [[#"^[0-9]*$" "int"]])
 (def test-parser (psequence [(wild :name) (token " ") (token "=" :op) (token " ") (tag "int" :value) (wild)]))
 
+(def special-separators [["\"" "\"" :string] ["'" "'" :string] ["#" "\n" :comment]])
+
 (defn -main [& in-args]
   (let [[opts args banner] (cli in-args
     ["-h" "--help" "Print this help"
@@ -20,6 +22,7 @@
     ;;(clojure.pprint/pprint (pybnf "data/languages/simple.lang" "data/test_simple.simp"))
     (clojure.pprint/pprint (ebnf "data/languages/ebnf_test.lang"))
     (clojure.pprint/pprint (ebnf "data/languages/ebnf.lang"))
+    (clojure.pprint/pprint (ebnf "data/languages/pascal_like.lang"))
     ))
     ;(let [[infile outfile] args]
     ;  (translate infile outfile test-parser test-separators test-tag-pairs))))
