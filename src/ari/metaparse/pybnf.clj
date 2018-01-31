@@ -15,35 +15,35 @@
 
 ; (def test-separators ["=" " " ">>>" "\n"])
 ; (def test-tag-pairs [[#"^[0-9]*$" "int"]])
-; (def test-parser (psequence-merge [(wild :name) (token " ") (token "=" :op) (token " ") (tag "int" :value) (wild)]))
+; (def test-parser (conseq-merge [(wild :name) (token " ") (token "=" :op) (token " ") (tag "int" :value) (wild)]))
 
 (def separators [":" " " "(" ")" "{" "}" "'" "|" "\n" "." "!" "`" "@" "," "="])
 
 (declare parser-part)
 
-(def whitespace (discard (many (any-of [(token " ") (token "\n")]))))
+(def whitespace (discard (many (from [(token " ") (token "\n")]))))
 
-(defparser direct-token (psequence-merge
+(defparser direct-token (conseq-merge
                           [(token "'") 
                            (tag "name" :token) 
                            (optional (tag "space"))
                            (optional (tag "name" :tag)) 
                            (token "'")]))
 
-(defparser or-operator (psequence-merge 
+(defparser or-operator (conseq-merge 
                          [(token "(")
                           (sep-by1
                             parser-part
                             (token "|"))
                           (token ")")]))
 
-(defparser many-operator (psequence-merge 
+(defparser many-operator (conseq-merge 
                            [(token "*")
                             (token "(")
                             parser-part
                             (token ")")]))
 
-(defparser key-operator (psequence-merge
+(defparser key-operator (conseq-merge
                           [(token "`")
                            (token "@")
                            (tag "name" :key)
@@ -51,27 +51,27 @@
                            parser-part
                            (token "`")]))
 
-(def parser-part (any-of [or-operator
+(def parser-part (from [or-operator
                           many-operator
                           key-operator
                           direct-token]))
 
-(defparser syntax-element (psequence-merge [(tag "name" :name) 
+(defparser syntax-element (conseq-merge [(tag "name" :name) 
                               (token ":") 
                               parser-part 
                               (tag "newline")]))
 
-(defparser separator-def (psequence-merge
+(defparser separator-def (conseq-merge
                            [(token "__separators__")
                             (token "=")
                             (sep-by (token any :sep) (token ","))
                             (tag "newline")]))
 
-(defparser tagger-def (psequence-merge
+(defparser tagger-def (conseq-merge
                         [(token "__taggers__")
                          (token "=")
                          (token "{")
-                         (sep-by (psequence-merge 
+                         (sep-by (conseq-merge 
                                   [(token any :regex) 
                                    (token ":")
                                    (token any :tag)])
@@ -79,7 +79,7 @@
                          (token "}")
                          (tag "newline")]))
 
-(defparser bnf-file (psequence-merge 
+(defparser bnf-file (conseq-merge 
                       [separator-def
                        tagger-def
                        (many syntax-element)]))
@@ -88,7 +88,7 @@
   (let [inner-ident (first (keys tree))
         inner-tree (inner-ident tree)]
     (cond (= inner-ident :or-operator)
-          (any-of (map create-syntax-element (:values inner-tree)))
+          (from (map create-syntax-element (:values inner-tree)))
           (= inner-ident :direct-token)
           (just (first (get inner-tree :token [any])) (first (get inner-tree :tag [any])))
           (= inner-ident :key-operator)
@@ -121,7 +121,7 @@
 (defn create-metaparser [bnf-file-tree-clean]
   (clojure.pprint/pprint (:taggers bnf-file-tree-clean))
   (fn [filename] (read-source filename
-                              (many (any-of (:parsers bnf-file-tree-clean)))
+                              (many (from (:parsers bnf-file-tree-clean)))
                               (:separators bnf-file-tree-clean)
                               (map #(list (re-pattern (first %)) (second %)) (:taggers bnf-file-tree-clean)))))
 

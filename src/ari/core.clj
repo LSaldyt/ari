@@ -9,7 +9,7 @@
 
 (def test-separators ["=" " " ">>>" "\n"])
 (def test-tag-pairs [[#"^[0-9]*$" "int"]])
-(def test-parser (psequence [(wild :name) (token " ") (token "=" :op) (token " ") (tag "int" :value) (wild)]))
+(def test-parser (conseq [(wild :name) (token " ") (token "=" :op) (token " ") (tag "int" :value) (wild)]))
 
 (def special-separators [["\"" "\"" :string] ["'" "'" :string] ["#" "\n" :comment]])
 

@@ -28,10 +28,10 @@
                 [#"\\|" "operator"]
                 [#":" "colon"]])
 
-(def whitespace (optional (discard (many (any-of [(tag "space") (tag "newline")])))))
+(def whitespace (optional (discard (many (from [(tag "space") (tag "newline")])))))
 
 (defn white [parser]
-  (discard (psequence-merge [whitespace parser whitespace])))
+  (discard (conseq-merge [whitespace parser whitespace])))
 
 (defparser terminal (tag :string :string))
 (defparser identifier (tag "name" :name))
@@ -43,9 +43,9 @@
 (declare optional-form)
 (declare elements)
 
-(defparser element (any-of elements))
+(defparser element (from elements))
 
-(defparser definition (psequence-merge
+(defparser definition (conseq-merge
                         [identifier
                          whitespace
                          (token "=")
@@ -59,21 +59,21 @@
 
 (defparser alternation (sep-by1 alt-element (white (token "|"))))
 
-(defparser optional-form (psequence-merge 
+(defparser optional-form (conseq-merge 
                            [(token "[")
                             whitespace
                             terminal
                             whitespace
                             (token "]")]))
 
-(defparser repetition (psequence-merge
+(defparser repetition (conseq-merge
                         [(token "{")
                          whitespace
                          element
                          whitespace
                          (token "}")]))
 
-(defparser grouping (psequence-merge
+(defparser grouping (conseq-merge
                       [(token "(")
                        whitespace
                        element

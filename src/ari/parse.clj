@@ -23,7 +23,7 @@
 
 (def any "*any*")
 
-(defn token-matcher 
+(defn- token-matcher 
   "((just any 'int') [2 'int']) -> [token tag]"
   ([etoken etag]
    (token-matcher etoken etag nil))
@@ -35,7 +35,7 @@
         [token tag k]
         nil))))
 
-(defn token-matcher-wrapper [parser]
+(defn- token-matcher-wrapper [parser]
   (fn [tokens] 
     (let [result (parser (first tokens))]
       (if result
@@ -71,7 +71,7 @@
 
 ; [tokens] -> {tree}, [remaining tokens]
 
-(defn psequence [given-parsers]
+(defn conseq [given-parsers]
   (fn [tokens] (loop [parsers   given-parsers
                       remaining tokens
                       tree  '()]
@@ -106,7 +106,7 @@
         nil
         [tree remaining]))))
 
-(defn any-of [parsers]
+(defn from [parsers]
   (fn [tokens] (loop [remaining-parsers parsers]
                  (if (empty? remaining-parsers)
                    nil
@@ -126,10 +126,7 @@
     (subs s 0 (- (count s) 9))))
 
 (defn any-except [parsers & out-parsers]
-  ; (println (map fn-name parsers))
-  ; (println (map fn-name out-parsers))
-  ; (println (map fn-name (remove #(apply = (fn-name %) (map fn-name out-parsers)) parsers)))
-  (any-of (remove 
+  (from (remove 
             (fn [x] 
               (some #(= (fn-name x) (fn-name %)) out-parsers)) parsers)))
 
@@ -148,17 +145,17 @@
           [nil remaining])
         nil))))
 
-(defn unsequence [[tree remaining]] 
+(defn- unsequence [[tree remaining]] 
   [(apply merge (:sequence tree)) remaining])
 
-(defn psequence-merge [given-parsers]
+(defn conseq-merge [given-parsers]
   (fn [tokens]
-    (unsequence ((psequence given-parsers) tokens))))
+    (unsequence ((conseq given-parsers) tokens))))
 
-(defn extract-sequences [tree]
+(defn- extract-sequences [tree]
   (map #(first (:sequence %)) (:values tree)))
 
-(defn create-sep-by [one]
+(defn- create-sep-by [one]
   (fn [item-parser sep-parser]
     (fn [tokens]
       (let [result (item-parser tokens)]
@@ -168,7 +165,7 @@
             [{} tokens])
           (let [[tree remaining] result]
             (let [in-result 
-                  (((if one many1 many) (psequence [sep-parser item-parser])) 
+                  (((if one many1 many) (conseq [sep-parser item-parser])) 
                    remaining)]
               (if (nil? in-result)
                 (if one
