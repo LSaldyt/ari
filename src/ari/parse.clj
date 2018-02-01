@@ -79,7 +79,9 @@
                    [{:sequence tree} remaining]
                    (let [result ((first parsers) remaining)]
                      (if (not result)
-                       nil
+                       (do 
+                         ;(println (first parsers))
+                         nil)
                        (let [[in-tree in-remaining] result]
                          (recur (rest parsers)
                                 in-remaining

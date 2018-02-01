@@ -1,4 +1,3 @@
-
 list = "(", s_expression, { s_expression }, ")";
 
 atomic_symbol = letter, atom_part;

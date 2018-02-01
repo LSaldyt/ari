@@ -22,7 +22,7 @@
     ;;(clojure.pprint/pprint (pybnf "data/languages/simple.lang" "data/test_simple.simp"))
     (clojure.pprint/pprint (ebnf "data/languages/ebnf_test.lang"))
     (clojure.pprint/pprint (ebnf "data/languages/ebnf.lang"))
-    (clojure.pprint/pprint (ebnf "data/languages/pascal_like.lang"))
+    ;(clojure.pprint/pprint (ebnf "data/languages/pascal_like.lang"))
     (clojure.pprint/pprint (ebnf "data/languages/lisp.lang"))
     ))
     ;(let [[infile outfile] args]

@@ -18,8 +18,8 @@
 ;   special sequence 	? ... ?
 ;   exception 	-
 
-(def separators [":" " " "(" ")" "{" "}" "'" "|" "\n" "." "!" "`" "@" "," "=" "\""])
-(def tag-pairs [[#"[_a-zA-Z][_a-zA-Z0-9]{0,30}" "name"]
+(def separators [":" " " "(" ")" "{" "}" "'" "|" "\n" "." "!" "`" "@" "," "=" "\"" ";"])
+(def tag-pairs [[#"^([A-Za-z]|[0-9]|_)+$" "name"]
                 [#"'" "quote"]
                 [#"\"" "quote"]
                 [#"=" "operator"]
