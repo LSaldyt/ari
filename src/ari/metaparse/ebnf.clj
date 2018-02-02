@@ -95,6 +95,62 @@
 
 (def special-separators [["\"" "\"" :string] ["'" "'" :string] ["(*" "*)" :comment]])
 
+;(declare alternation)
+;(declare concatenation)
+;(declare grouping)
+;(declare repetition)
+;(declare optional-form)
+;(declare elements)
+
+(declare process-ebnf-element)
+
+(defn break-tree [single-tree]
+  (let [k (first (keys single-tree))]
+    [k (k single-tree)]))
+
+(defn process-concatenation [element]
+  (let [values (map :con-element (:values element))]
+    (map process-ebnf-element values)))
+
+(defn process-alternation [element]
+  (let [values (map :alt-element (:values element))]
+    (map process-ebnf-element values)))
+
+(defn process-repetition [element]
+  (many (process-ebnf-element (:element element))))
+
+{:repetition
+   {:element {:identifier {:name ["s_expression" "name"]}}}}
+
+
+(defn process-terminal [element]
+  (token (first (:string (:terminal element)))))
+
+(defn process-ebnf-element [element]
+  (let [[k tree] (break-tree element)]
+    (cond (= k :alternation)
+          (process-alternation tree)
+          (= k :concatenation)
+          (process-concatenation tree)
+          (= k :repetition)
+          (process-repetition tree)
+          (= k :terminal)
+          (process-terminal tree)
+          :else
+          element)))
+
+(defn get-identifier [definition]
+  (first (:name (:identifier definition))))
+
+(defn process-ebnf-tree [tree]
+  (let [values (:values tree)]
+    (into {} 
+          (for [definition values]
+            (let [definition (:definition definition)]
+              [(get-identifier definition) 
+               (process-ebnf-element (:element definition))])))))
+
+
 (defn ebnf [filename]
   (let [[tree remaining] 
         (read-source filename 
@@ -102,4 +158,5 @@
                      separators 
                      special-separators
                      tag-pairs)]
+    (clojure.pprint/pprint (process-ebnf-tree tree))
     [tree remaining]))

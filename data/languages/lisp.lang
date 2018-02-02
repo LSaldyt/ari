@@ -21,3 +21,4 @@ s_expression = atomic_symbol
       | "(", s_expression, ".", s_expression, ")" 
       | list;
 
+test = "test";

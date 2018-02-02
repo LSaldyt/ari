@@ -80,7 +80,6 @@
                    (let [result ((first parsers) remaining)]
                      (if (not result)
                        (do 
-                         ;(println (first parsers))
                          nil)
                        (let [[in-tree in-remaining] result]
                          (recur (rest parsers)
