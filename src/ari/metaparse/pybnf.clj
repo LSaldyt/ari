@@ -123,6 +123,7 @@
   (fn [filename] (read-source filename
                               (many (from (:parsers bnf-file-tree-clean)))
                               (:separators bnf-file-tree-clean)
+                              special-separators
                               (map #(list (re-pattern (first %)) (second %)) (:taggers bnf-file-tree-clean)))))
 
 (defn pybnf [filename testfile]
