@@ -110,7 +110,10 @@
 
 (defn process-concatenation [element ptree]
   (let [values (map :con-element (:values element))]
-    (conseq-merge (map #(process-ebnf-element % ptree) values))))
+    (let [elements (map #(process-ebnf-element % ptree) values)]
+      (println "Elements")
+      (clojure.pprint/pprint elements)
+      (conseq-merge elements))))
 
 (defn process-alternation [element ptree]
   (let [values (map :alt-element (:values element))]
@@ -124,7 +127,7 @@
 
 (defn process-ref [element ptree]
   (let [k (first (:name (:identifier element)))]
-    (get @ptree k)))
+    (fn [tokens] ((get @ptree k) tokens))))
 
 (defn process-ebnf-element [element ptree]
   (let [[k tree] (break-tree element)]
@@ -139,7 +142,10 @@
           (= k :identifier)
           (process-ref element ptree)
           :else
-          element)))
+          (do
+            (println "Non-matching element:")
+            (println element)
+            element))))
 
 (defn get-identifier [definition]
   (first (:name (:identifier definition))))
@@ -154,6 +160,15 @@
                  (process-ebnf-element (:element definition) parser-tree)])))]
       (reset! parser-tree new-tree))))
 
+(def special-separators [["\"" "\"" :string] ["'" "'" :string] ["#" "\n" :comment]])
+
+(defn create-ebnf-metaparser [tree]
+  (fn [filename] (read-source filename
+                              (get tree "body")
+                              [" " "(" ")" "\n"]
+                              special-separators
+                              [])))
+
 (defn ebnf [filename]
   (let [[tree remaining] 
         (read-source filename 
@@ -163,4 +178,5 @@
                      tag-pairs)]
     (let [clean-tree (process-ebnf-tree tree)]
       (clojure.pprint/pprint clean-tree)
-      (from (vals clean-tree)))))
+      (println (get clean-tree "body"))
+      (create-ebnf-metaparser clean-tree))))
