@@ -111,8 +111,8 @@
 (defn process-concatenation [element ptree]
   (let [values (map :con-element (:values element))]
     (let [elements (map #(process-ebnf-element % ptree) values)]
-      (println "Elements")
-      (clojure.pprint/pprint elements)
+      ;(println "Elements")
+      ;(clojure.pprint/pprint elements)
       (conseq-merge elements))))
 
 (defn process-alternation [element ptree]
