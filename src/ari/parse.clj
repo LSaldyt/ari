@@ -180,6 +180,9 @@
 (def sep-by  (create-sep-by false))
 (def sep-by1 (create-sep-by true))
 
+(defn create-ref-parser [dict k]
+  (fn [tokens] ((k dict) tokens)))
+
 (defmacro create-parser [ident parser]
   `(fn [tokens#]
      (let [[tree# remaining#] (~parser tokens#)]

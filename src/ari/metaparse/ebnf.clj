@@ -108,34 +108,36 @@
   (let [k (first (keys single-tree))]
     [k (k single-tree)]))
 
-(defn process-concatenation [element]
+(defn process-concatenation [element ptree]
   (let [values (map :con-element (:values element))]
-    (map process-ebnf-element values)))
+    (conseq-merge (map #(process-ebnf-element % ptree) values))))
 
-(defn process-alternation [element]
+(defn process-alternation [element ptree]
   (let [values (map :alt-element (:values element))]
-    (map process-ebnf-element values)))
+    (from (map #(process-ebnf-element % ptree) values))))
 
-(defn process-repetition [element]
-  (many (process-ebnf-element (:element element))))
+(defn process-repetition [element ptree]
+  (many (process-ebnf-element (:element element) ptree)))
 
-{:repetition
-   {:element {:identifier {:name ["s_expression" "name"]}}}}
-
-
-(defn process-terminal [element]
+(defn process-terminal [element ptree]
   (token (first (:string (:terminal element)))))
 
-(defn process-ebnf-element [element]
+(defn process-ref [element ptree]
+  (let [k (first (:name (:identifier element)))]
+    (get @ptree k)))
+
+(defn process-ebnf-element [element ptree]
   (let [[k tree] (break-tree element)]
     (cond (= k :alternation)
-          (process-alternation tree)
+          (process-alternation tree ptree)
           (= k :concatenation)
-          (process-concatenation tree)
+          (process-concatenation tree ptree)
           (= k :repetition)
-          (process-repetition tree)
+          (process-repetition tree ptree)
           (= k :terminal)
-          (process-terminal tree)
+          (process-terminal tree ptree)
+          (= k :identifier)
+          (process-ref element ptree)
           :else
           element)))
 
@@ -144,12 +146,13 @@
 
 (defn process-ebnf-tree [tree]
   (let [values (:values tree)]
-    (into {} 
-          (for [definition values]
-            (let [definition (:definition definition)]
-              [(get-identifier definition) 
-               (process-ebnf-element (:element definition))])))))
-
+    (def parser-tree (atom {}))
+    (let [new-tree (into {} 
+            (for [definition values]
+              (let [definition (:definition definition)]
+                [(get-identifier definition) 
+                 (process-ebnf-element (:element definition) parser-tree)])))]
+      (reset! parser-tree new-tree))))
 
 (defn ebnf [filename]
   (let [[tree remaining] 
@@ -158,5 +161,6 @@
                      separators 
                      special-separators
                      tag-pairs)]
-    (clojure.pprint/pprint (process-ebnf-tree tree))
-    [tree remaining]))
+    (let [clean-tree (process-ebnf-tree tree)]
+      (clojure.pprint/pprint clean-tree)
+      (from (vals clean-tree)))))
