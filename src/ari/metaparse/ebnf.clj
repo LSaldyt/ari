@@ -117,11 +117,12 @@
 
 (defn process-terminal [element ptree]
   (let [item (first (:string element))]
-    (if (= item "NEWLINE")
-      (do
-        (println item)
-        (tag "newline"))
-      (token item))))
+    (token item)))
+;     (if (= item "NEWLINE")
+;       (do
+;         (println item)
+;         (tag "newline"))
+;       (token item))))
 
 (defn process-ref [element ptree]
   (let [k (first (:name (:identifier element)))]

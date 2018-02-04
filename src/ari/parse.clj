@@ -46,7 +46,8 @@
              {k [token tag]})
            (rest tokens)
            (log/log log (str "Success: <" etoken ">, <" etag ">"))])
-        [nil tokens log]))))
+        [nil tokens (log/log log (str "Failed: <" etoken ">, <" etag ">"
+                                      " (against: " (first tokens) ")"))]))))
 
 (defn just 
   ([etoken etag]
@@ -75,13 +76,14 @@
                      [parsers   given-parsers
                       remaining tokens
                       tree  '()
-                      loop-log log]
+                      loop-log (log/log log "Began conseq")]
                  (if (empty? parsers)
                    [{:sequence tree} remaining (log/log loop-log (str "Conseq success"))]
                  (let [[in-tree in-remaining in-log] 
-                       (use-parser (first parsers) remaining loop-log)]
+                       (use-parser (first parsers) remaining loop-log)
+                       in-log (log/log in-log (str "Next: "(first in-remaining)))]
                    (if (nil? in-tree)
-                     [nil tokens in-log]
+                     [nil tokens (log/log in-log "Stopped conseq")]
                      (recur (rest parsers)
                             in-remaining
                             (if (nil? in-tree)
@@ -93,37 +95,40 @@
   (fn [tokens log] (loop 
                      [remaining tokens
                       values  '()
-                      loop-log log]
+                      loop-log (log/log log "Began Many")]
                  (if (empty? remaining)
                    [{:values values} 
                     remaining 
-                    (log/log loop-log (str "Many success"))]
+                    (log/log loop-log (str "Many success (no more tokens)"))]
                    (let [[in-values in-remaining in-log] 
                          (use-parser given-parser remaining loop-log)]
                      (if (nil? in-values)
-                       [{:values values} tokens in-log]
-                     (recur in-remaining
-                            (concat values (list in-values))
-                            in-log)))))))
+                       [{:values values} remaining (log/log in-log "Many success")]
+                       (recur in-remaining
+                              (concat values (list in-values))
+                              in-log)))))))
 
 (defn many1 [given-parser]
   (fn [tokens log]
-    (let [[tree remaining in-log] (use-parser (many given-parser) tokens log)]
+    (let [log (log/log log "Began many1")
+          [tree remaining in-log] (use-parser (many given-parser) tokens log)]
       (if (empty? (:values tree))
-        [nil tokens in-log]
+        [nil tokens (log/log in-log "Many1 failure")]
         [tree remaining (log/log in-log (str "Many1 success"))]))))
 
 (defn from [parsers]
-  (fn [tokens log] (loop [remaining-parsers parsers]
+  (fn [tokens log] 
+    (let [log (log/log log "Began from")]
+      (loop [remaining-parsers parsers]
                  (if (empty? remaining-parsers)
-                   [nil tokens log]
+                   [nil tokens (log/log log "From failure")]
                    (let [[tree remaining in-log] 
                          (use-parser (first remaining-parsers) tokens log)]
                      (if (not (nil? tree))
                        [tree 
                         remaining 
                         (log/log in-log "From success")]
-                       (recur (rest remaining-parsers))))))))
+                       (recur (rest remaining-parsers)))))))))
 
 (defn- demunge-fn
   [fn-object]
@@ -142,20 +147,23 @@
 
 (defn optional [parser]
   (fn [tokens log] 
-    (let [[tree remaining in-log] (use-parser parser tokens log)]
+    (let [log (log/log log "Begin Optional")
+          [tree remaining in-log] (use-parser parser tokens log)]
       [(if (nil? tree) {} tree)
        remaining
-       in-log])))
+       (log/log in-log (str "Ran optional (" 
+                            (if (nil? tree) "unsucessfully" "successfully") ")"
+                            ))])))
 
 (defn discard [parser]
   (fn [tokens log]
-    (let [[tree remaining in-log] (use-parser parser tokens log)]
-      [nil 
-       (if (nil? tree) tokens remaining)
-       (log/log in-log (str "Discard success"))])))
+    (let [log (log/log log "Began Discard")
+          [tree remaining in-log] (use-parser parser tokens log)]
+      (if (nil? tree)
+        [nil tokens (log/log in-log "Discard failure")]
+        [{} remaining (log/log in-log "Discard success")]))))
 
 (defn- unsequence [[tree remaining log]] 
-  ;(clojure.pprint/pprint (:sequence tree))
   [(apply merge (:sequence tree)) remaining log])
 
 (defn conseq-merge [given-parsers]
