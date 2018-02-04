@@ -1,4 +1,4 @@
-(ns ari.parse-log)
+(ns ari.log)
 
 (defn log [log-tree message]
   (let [head (:head log-tree)

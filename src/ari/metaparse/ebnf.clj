@@ -170,7 +170,7 @@
                               [])))
 
 (defn ebnf [filename]
-  (let [[tree remaining] 
+  (let [[tree remaining log] 
         (read-source filename 
                      (many definition)
                      separators 

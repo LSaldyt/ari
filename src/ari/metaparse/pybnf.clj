@@ -127,7 +127,7 @@
                               (map #(list (re-pattern (first %)) (second %)) (:taggers bnf-file-tree-clean)))))
 
 (defn pybnf [filename testfile]
-  (let [[tree remaining] 
+  (let [[tree remaining log] 
         (read-source filename 
                      bnf-file 
                      separators 

@@ -1,4 +1,5 @@
-(ns ari.parse)
+(ns ari.parse
+  (:require [ari.log :refer [log]]))
 
 ; Parse technique:
 ; Given multiple parsers:
@@ -37,7 +38,8 @@
           [(if (nil? k)
              nil
              {k [token tag]})
-           (rest tokens)])
+           (rest tokens)
+           log])
         nil))))
 
 (defn just 
@@ -67,12 +69,13 @@
                       remaining tokens
                       tree  '()]
                  (if (empty? parsers)
-                   [{:sequence tree} remaining]
+                   [{:sequence tree} remaining log]
                    (let [result ((first parsers) remaining log)]
                      (if (not result)
                        (do 
                          nil)
-                       (let [[in-tree in-remaining] result]
+                       (let [[in-tree in-remaining in-log] result]
+                         ; TODO: join logs
                          (recur (rest parsers)
                                 in-remaining
                                 (if (nil? in-tree)
@@ -83,20 +86,22 @@
   (fn [tokens log] (loop [remaining tokens
                       values  '()]
                  (if (empty? remaining)
-                   [{:values values} remaining]
+                   [{:values values} remaining log]
                    (let [result (given-parser remaining log)]
                      (if (not result)
-                       [{:values values} remaining]
-                       (let [[in-values in-remaining] result]
+                       [{:values values} remaining log]
+                       (let [[in-values in-remaining in-log] result]
+                      ; TODO: Join logs
                          (recur in-remaining
                                 (concat values (list in-values))))))))))
 
 (defn many1 [given-parser]
   (fn [tokens log]
-    (let [[tree remaining] ((many given-parser) tokens log)]
+    (let [[tree remaining in-log] ((many given-parser) tokens log)]
+      ; TODO: Join logs
       (if (empty? (:values tree))
         nil
-        [tree remaining]))))
+        [tree remaining log]))))
 
 (defn from [parsers]
   (fn [tokens log] (loop [remaining-parsers parsers]
@@ -127,18 +132,18 @@
     (let [result (parser tokens log)]
       (if result
         result
-        [{} tokens]))))
+        [{} tokens log]))))
 
 (defn discard [parser]
   (fn [tokens log]
     (let [result (parser tokens log)]
       (if result
         (let [[tree remaining] result]
-          [nil remaining])
+          [nil remaining log])
         nil))))
 
-(defn- unsequence [[tree remaining]] 
-  [(apply merge (:sequence tree)) remaining])
+(defn- unsequence [[tree remaining log]] 
+  [(apply merge (:sequence tree)) remaining log])
 
 (defn conseq-merge [given-parsers]
   (fn [tokens log]
@@ -154,8 +159,9 @@
         (if (nil? result)
           (if one
             nil
-            [{} tokens])
-          (let [[tree remaining] result]
+            [{} tokens log])
+          (let [[tree remaining log1] result]
+            ; TODO: join logs
             (let [in-result 
                   (((if one many1 many) (conseq [sep-parser item-parser])) 
                    remaining 
@@ -163,31 +169,33 @@
               (if (nil? in-result)
                 (if one
                   nil
-                  [tree remaining])
-                (let [[in-tree in-remaining] in-result]
+                  [tree remaining log])
+                (let [[in-tree in-remaining in-log] in-result]
+                  ; TODO: join logs
                   [{:values (concat (list tree) 
                                     (extract-sequences in-tree))} 
-                   in-remaining])))))))))
+                   in-remaining
+                   in-log])))))))))
 
 (def sep-by  (create-sep-by false))
 (def sep-by1 (create-sep-by true))
 
 (defn create-ref-parser [dict k]
-  (fn [tokens log] ((k dict) tokens)))
+  (fn [tokens log] ((k dict) tokens log)))
 
 (defmacro create-parser [ident parser]
   `(fn [tokens# log#]
      (let [[tree# remaining#] (~parser tokens# log#)]
        (if (nil? tree#)
          nil
-         [{(keyword '~ident) tree#} remaining#]))))
+         [{(keyword '~ident) tree#} remaining# log#]))))
 
 (defmacro defparser [ident parser]
   `(defn ~ident [tokens# log#]
      (let [[tree# remaining#] (~parser tokens# log#)]
        (if (nil? tree#)
          nil
-         [{(keyword '~ident) tree#} remaining#]))))
+         [{(keyword '~ident) tree#} remaining# log#]))))
 
 (defn retrieve [k ptree-atom]
   (fn [tokens log] ((get @ptree-atom k) tokens log)))
