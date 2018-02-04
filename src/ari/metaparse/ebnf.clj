@@ -34,6 +34,7 @@
   (discard (conseq-merge [whitespace parser whitespace])))
 
 (defparser terminal (tag :string :string))
+(defparser special (tag "special" :special))
 (defparser identifier (tag "name" :name))
 
 (declare alternation)
@@ -91,16 +92,10 @@
                alternation
                concatenation
                terminal
+               special
                identifier])
 
 (def special-separators [["\"" "\"" :string] ["'" "'" :string] ["(*" "*)" :comment]])
-
-;(declare alternation)
-;(declare concatenation)
-;(declare grouping)
-;(declare repetition)
-;(declare optional-form)
-;(declare elements)
 
 (declare process-ebnf-element)
 
@@ -111,8 +106,6 @@
 (defn process-concatenation [element ptree]
   (let [values (map :con-element (:values element))]
     (let [elements (map #(process-ebnf-element % ptree) values)]
-      ;(println "Elements")
-      ;(clojure.pprint/pprint elements)
       (conseq-merge elements))))
 
 (defn process-alternation [element ptree]
@@ -124,10 +117,10 @@
 
 (defn process-terminal [element ptree]
   (let [item (first (:string element))]
-    (println "here")
-    (println item)
-    (if (= item "\\n")
-      (tag "newline")
+    (if (= item "NEWLINE")
+      (do
+        (println item)
+        (tag "newline"))
       (token item))))
 
 (defn process-ref [element ptree]
@@ -167,7 +160,8 @@
 
 (def special-separators [["\"" "\"" :string] ["'" "'" :string] ["#" "\n" :comment]])
 
-(def tag-pairs [[#"[_a-zA-Z][_a-zA-Z0-9]{0,30}" "name"]
+(def tag-pairs [[#"NEWLINE" "special"]
+                [#"[_a-zA-Z][_a-zA-Z0-9]{0,30}" "name"]
                 [#"'" "quote"]
                 [#"\n" "newline"]
                 [#" " "space"]

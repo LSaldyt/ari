@@ -5,8 +5,8 @@
         head+ (concat head (list :log))
         result (get-in log-tree head+)]
     (if result
-      (assoc log-tree head+ (concat result (list message)))
-      (assoc log-tree head+ (list message)))))
+      (assoc log-tree (apply str head+) (concat result (list message)))
+      (assoc log-tree (apply str head+) (list message)))))
 
 (defn log-pop [log-tree]
   (let [head (:head log-tree)]
