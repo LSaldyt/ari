@@ -23,12 +23,8 @@
 
 (def whitespace (discard (many (from [(token " ") (token "\n")]))))
 
-(defparser direct-token (conseq-merge
-                          [(token "'") 
-                           (tag "name" :token) 
-                           (optional (tag "space"))
-                           (optional (tag "name" :tag)) 
-                           (token "'")]))
+(defparser identifier (tag "name" :identifier))
+(defparser direct-token (tag :string :token))
 
 (defparser or-operator (conseq-merge 
                          [(token "(")
@@ -52,9 +48,11 @@
                            (token "`")]))
 
 (def parser-part (from [or-operator
-                          many-operator
-                          key-operator
-                          direct-token]))
+                        many-operator
+                        key-operator
+                        direct-token
+                        identifier
+                        ]))
 
 (defparser syntax-element (conseq-merge [(tag "name" :name) 
                               (token ":") 
@@ -133,5 +131,7 @@
                      separators 
                      special-separators
                      tag-pairs)]
+    (println "HERE")
+    (/ 1 0)
   (let [clean-tree (process-bnf-file tree)]
     ((create-metaparser clean-tree) testfile))))

@@ -83,7 +83,7 @@
                        (use-parser (first parsers) remaining loop-log)
                        in-log (log/log in-log (str "Next: "(first in-remaining)))]
                    (if (nil? in-tree)
-                     [nil tokens (log/log in-log "Stopped conseq")]
+                     [nil in-remaining (log/log in-log "Stopped conseq")]
                      (recur (rest parsers)
                             in-remaining
                             (if (nil? in-tree)
@@ -160,7 +160,7 @@
     (let [log (log/log log "Began Discard")
           [tree remaining in-log] (use-parser parser tokens log)]
       (if (nil? tree)
-        [nil tokens (log/log in-log "Discard failure")]
+        [nil remaining (log/log in-log "Discard failure")]
         [{} remaining (log/log in-log "Discard success")]))))
 
 (defn- unsequence [[tree remaining log]] 
@@ -179,16 +179,16 @@
       (let [[tree remaining log1] (use-parser item-parser tokens log)]
         (if (nil? tree)
           (if one
-            [nil tokens log1]
-            [{} tokens log1])
+            [nil remaining log1]
+            [{} remaining log1])
           (let [[in-tree in-remaining in-log]
                 (((if one many1 many) (conseq [sep-parser item-parser])) 
                  remaining 
                  log1)]
             (if (nil? in-tree)
               (if one
-                [nil tokens in-log]
-                [tree remaining in-log])
+                [nil in-remaining in-log]
+                [tree in-remaining in-log])
               [{:values (concat (list tree) 
                                 (extract-sequences in-tree))} 
                in-remaining
@@ -204,22 +204,22 @@
   `(fn [tokens# log#]
      (let [[tree# remaining# inlog#] (use-parser ~parser tokens# log#)]
        (if (nil? tree#)
-         [nil tokens# inlog#]
+         [nil remaining# inlog#]
          [{(keyword '~ident) tree#} remaining# inlog#]))))
 
 (defmacro defparser [ident parser]
   `(defn ~ident [tokens# log#]
      (let [[tree# remaining# inlog#] (use-parser ~parser tokens# log#)]
        (if (nil? tree#)
-         [nil tokens# inlog#]
+         [nil remaining# inlog#]
          [{(keyword '~ident) tree#} remaining# inlog#]))))
 
 (defn retrieve [k ptree-atom]
-  (println "Invoked retrieve")
-  (clojure.pprint/pprint @ptree-atom)
+  ;(println "Invoked retrieve")
+  ;(clojure.pprint/pprint @ptree-atom)
   (fn [tokens log] 
-    (let [result ((get @ptree-atom k) tokens log )]
-      (println result)
+    (let [log (log/log log "Begin retrieve")
+          result ((get @ptree-atom k) tokens log)]
       result)))
 
 (defn parse [parser content]
