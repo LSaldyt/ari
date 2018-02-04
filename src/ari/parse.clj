@@ -1,5 +1,5 @@
 (ns ari.parse
-  (:require [ari.log :refer [log]]))
+  (:require [ari.log :as log]))
 
 ; Parse technique:
 ; Given multiple parsers:
@@ -39,7 +39,7 @@
              nil
              {k [token tag]})
            (rest tokens)
-           log])
+           (log/log log (str "Success: " parser))])
         nil))))
 
 (defn just 
@@ -65,28 +65,30 @@
   ([k] (just any any k)))
 
 (defn conseq [given-parsers]
-  (fn [tokens log] (loop [parsers   given-parsers
+  (fn [tokens log] (loop 
+                     [parsers   given-parsers
                       remaining tokens
-                      tree  '()]
+                      tree  '()
+                      loop-log log]
                  (if (empty? parsers)
-                   [{:sequence tree} remaining log]
-                   (let [result ((first parsers) remaining log)]
+                   [{:sequence tree} remaining (log/log loop-log (str "Conseq success"))]
+                   (let [result ((first parsers) remaining loop-log)]
                      (if (not result)
                        (do 
                          nil)
-                       (let [[in-tree in-remaining in-log] result]
-                         ; TODO: join logs
+                       (let [[in-tree in-remaining in-log] result ]
                          (recur (rest parsers)
                                 in-remaining
                                 (if (nil? in-tree)
                                   tree
-                                  (concat tree (list in-tree)))))))))))
+                                  (concat tree (list in-tree)))
+                                (log/join log in-log)))))))))
 
 (defn many [given-parser]
   (fn [tokens log] (loop [remaining tokens
                       values  '()]
                  (if (empty? remaining)
-                   [{:values values} remaining log]
+                   [{:values values} remaining (log/log log (str "Many success"))]
                    (let [result (given-parser remaining log)]
                      (if (not result)
                        [{:values values} remaining log]
@@ -101,7 +103,7 @@
       ; TODO: Join logs
       (if (empty? (:values tree))
         nil
-        [tree remaining log]))))
+        [tree remaining (log/log log (str "Many1 success"))]))))
 
 (defn from [parsers]
   (fn [tokens log] (loop [remaining-parsers parsers]
@@ -109,7 +111,9 @@
                    nil
                    (let [result ((first remaining-parsers) tokens log)]
                      (if (not (nil? result))
-                       result
+                       (let [[tree remaining in-log] result]
+                         ; TODO: merge logs
+                         [tree remaining (log/log in-log "From success")])
                        (recur (rest remaining-parsers))))))))
 
 (defn- demunge-fn
@@ -132,14 +136,14 @@
     (let [result (parser tokens log)]
       (if result
         result
-        [{} tokens log]))))
+        [{} tokens (log/log log (str "Optional skipped"))]))))
 
 (defn discard [parser]
   (fn [tokens log]
     (let [result (parser tokens log)]
       (if result
         (let [[tree remaining] result]
-          [nil remaining log])
+          [nil remaining (log/log log (str "Discard success"))])
         nil))))
 
 (defn- unsequence [[tree remaining log]] 
@@ -198,8 +202,8 @@
          [{(keyword '~ident) tree#} remaining# log#]))))
 
 (defn retrieve [k ptree-atom]
-  (fn [tokens log] ((get @ptree-atom k) tokens log)))
+  (fn [tokens log] ((get @ptree-atom k) tokens (log/log log (str "Retrieved " k)))))
 
 (defn parse [parser content]
-  (parser content {:head [:log]}))
+  (parser content {:head [:all]}))
 

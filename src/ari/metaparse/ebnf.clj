@@ -176,7 +176,8 @@
                      separators 
                      special-separators
                      tag-pairs)]
+    (clojure.pprint/pprint log)
     (let [clean-tree (process-ebnf-tree tree)]
-      (clojure.pprint/pprint clean-tree)
-      (println (get clean-tree "body"))
+      ;(clojure.pprint/pprint clean-tree)
+      ;(println (get clean-tree "body"))
       (create-ebnf-metaparser clean-tree))))
