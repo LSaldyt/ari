@@ -15,6 +15,12 @@
 
 ; assignment([[x ident] [= op] [2 int]]) -> {:assignment {:name x :op = :value 2}}
 
+(defn use-parser [parser tokens log]
+  (let [log (log/log-push log "test")
+        [tree remaining in-log] (parser tokens log)
+        in-log (log/join log in-log)
+        in-log (log/log-pop in-log)]
+    [tree remaining in-log]))
 
 (def any "*any*")
 
@@ -30,23 +36,23 @@
         [token tag k]
         nil))))
 
-(defn- token-matcher-wrapper [parser]
+(defn- token-matcher-wrapper [parser etoken etag]
   (fn [tokens log] 
     (let [result (parser (first tokens))]
       (if result
         (let [[token tag k] result]
           [(if (nil? k)
-             nil
+             {}
              {k [token tag]})
            (rest tokens)
-           (log/log log (str "Success: " parser))])
-        nil))))
+           (log/log log (str "Success: <" etoken ">, <" etag ">"))])
+        [nil tokens log]))))
 
 (defn just 
   ([etoken etag]
    (just etoken etag nil))
   ([etoken etag k]
-   (token-matcher-wrapper (token-matcher etoken etag k))))
+   (token-matcher-wrapper (token-matcher etoken etag k) etoken etag)))
 
 (defn tag
   ([etag]
@@ -72,48 +78,51 @@
                       loop-log log]
                  (if (empty? parsers)
                    [{:sequence tree} remaining (log/log loop-log (str "Conseq success"))]
-                   (let [result ((first parsers) remaining loop-log)]
-                     (if (not result)
-                       (do 
-                         nil)
-                       (let [[in-tree in-remaining in-log] result ]
-                         (recur (rest parsers)
-                                in-remaining
-                                (if (nil? in-tree)
-                                  tree
-                                  (concat tree (list in-tree)))
-                                (log/join log in-log)))))))))
+                 (let [[in-tree in-remaining in-log] 
+                       (use-parser (first parsers) remaining loop-log)]
+                   (if (nil? in-tree)
+                     [nil tokens in-log]
+                     (recur (rest parsers)
+                            in-remaining
+                            (if (nil? in-tree)
+                              tree
+                              (concat tree (list in-tree)))
+                            in-log)))))))
 
 (defn many [given-parser]
-  (fn [tokens log] (loop [remaining tokens
-                      values  '()]
+  (fn [tokens log] (loop 
+                     [remaining tokens
+                      values  '()
+                      loop-log log]
                  (if (empty? remaining)
-                   [{:values values} remaining (log/log log (str "Many success"))]
-                   (let [result (given-parser remaining log)]
-                     (if (not result)
-                       [{:values values} remaining log]
-                       (let [[in-values in-remaining in-log] result]
-                      ; TODO: Join logs
-                         (recur in-remaining
-                                (concat values (list in-values))))))))))
+                   [{:values values} 
+                    remaining 
+                    (log/log loop-log (str "Many success"))]
+                   (let [[in-values in-remaining in-log] 
+                         (use-parser given-parser remaining loop-log)]
+                     (if (nil? in-values)
+                       [{:values values} tokens in-log]
+                     (recur in-remaining
+                            (concat values (list in-values))
+                            in-log)))))))
 
 (defn many1 [given-parser]
   (fn [tokens log]
-    (let [[tree remaining in-log] ((many given-parser) tokens log)]
-      ; TODO: Join logs
+    (let [[tree remaining in-log] (use-parser (many given-parser) tokens log)]
       (if (empty? (:values tree))
-        nil
-        [tree remaining (log/log log (str "Many1 success"))]))))
+        [nil tokens in-log]
+        [tree remaining (log/log in-log (str "Many1 success"))]))))
 
 (defn from [parsers]
   (fn [tokens log] (loop [remaining-parsers parsers]
                  (if (empty? remaining-parsers)
-                   nil
-                   (let [result ((first remaining-parsers) tokens log)]
-                     (if (not (nil? result))
-                       (let [[tree remaining in-log] result]
-                         ; TODO: merge logs
-                         [tree remaining (log/log in-log "From success")])
+                   [nil tokens log]
+                   (let [[tree remaining in-log] 
+                         (use-parser (first remaining-parsers) tokens log)]
+                     (if (not (nil? tree))
+                       [tree 
+                        remaining 
+                        (log/log in-log "From success")]
                        (recur (rest remaining-parsers))))))))
 
 (defn- demunge-fn
@@ -133,20 +142,20 @@
 
 (defn optional [parser]
   (fn [tokens log] 
-    (let [result (parser tokens log)]
-      (if result
-        result
-        [{} tokens (log/log log (str "Optional skipped"))]))))
+    (let [[tree remaining in-log] (use-parser parser tokens log)]
+      [(if (nil? tree) {} tree)
+       remaining
+       in-log])))
 
 (defn discard [parser]
   (fn [tokens log]
-    (let [result (parser tokens log)]
-      (if result
-        (let [[tree remaining] result]
-          [nil remaining (log/log log (str "Discard success"))])
-        nil))))
+    (let [[tree remaining in-log] (use-parser parser tokens log)]
+      [nil 
+       (if (nil? tree) tokens remaining)
+       (log/log in-log (str "Discard success"))])))
 
 (defn- unsequence [[tree remaining log]] 
+  ;(clojure.pprint/pprint (:sequence tree))
   [(apply merge (:sequence tree)) remaining log])
 
 (defn conseq-merge [given-parsers]
@@ -159,27 +168,23 @@
 (defn- create-sep-by [one]
   (fn [item-parser sep-parser]
     (fn [tokens log]
-      (let [result (item-parser tokens log)]
-        (if (nil? result)
+      (let [[tree remaining log1] (use-parser item-parser tokens log)]
+        (if (nil? tree)
           (if one
-            nil
-            [{} tokens log])
-          (let [[tree remaining log1] result]
-            ; TODO: join logs
-            (let [in-result 
-                  (((if one many1 many) (conseq [sep-parser item-parser])) 
-                   remaining 
-                   log)]
-              (if (nil? in-result)
-                (if one
-                  nil
-                  [tree remaining log])
-                (let [[in-tree in-remaining in-log] in-result]
-                  ; TODO: join logs
-                  [{:values (concat (list tree) 
-                                    (extract-sequences in-tree))} 
-                   in-remaining
-                   in-log])))))))))
+            [nil tokens log1]
+            [{} tokens log1])
+          (let [[in-tree in-remaining in-log]
+                (((if one many1 many) (conseq [sep-parser item-parser])) 
+                 remaining 
+                 log1)]
+            (if (nil? in-tree)
+              (if one
+                [nil tokens in-log]
+                [tree remaining in-log])
+              [{:values (concat (list tree) 
+                                (extract-sequences in-tree))} 
+               in-remaining
+               in-log])))))))
 
 (def sep-by  (create-sep-by false))
 (def sep-by1 (create-sep-by true))
@@ -189,21 +194,27 @@
 
 (defmacro create-parser [ident parser]
   `(fn [tokens# log#]
-     (let [[tree# remaining#] (~parser tokens# log#)]
+     (let [[tree# remaining# inlog#] (use-parser ~parser tokens# log#)]
        (if (nil? tree#)
-         nil
-         [{(keyword '~ident) tree#} remaining# log#]))))
+         [nil tokens# inlog#]
+         [{(keyword '~ident) tree#} remaining# inlog#]))))
 
 (defmacro defparser [ident parser]
   `(defn ~ident [tokens# log#]
-     (let [[tree# remaining#] (~parser tokens# log#)]
+     (let [[tree# remaining# inlog#] (use-parser ~parser tokens# log#)]
        (if (nil? tree#)
-         nil
-         [{(keyword '~ident) tree#} remaining# log#]))))
+         [nil tokens# inlog#]
+         [{(keyword '~ident) tree#} remaining# inlog#]))))
 
 (defn retrieve [k ptree-atom]
-  (fn [tokens log] ((get @ptree-atom k) tokens (log/log log (str "Retrieved " k)))))
+  (println "Invoked retrieve")
+  (clojure.pprint/pprint @ptree-atom)
+  (fn [tokens log] 
+    (let [result ((get @ptree-atom k) tokens log )]
+      (println result)
+      result)))
 
 (defn parse [parser content]
+  (println parser)
   (parser content {:head [:all]}))
 

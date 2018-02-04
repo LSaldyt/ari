@@ -133,7 +133,5 @@
                      separators 
                      special-separators
                      tag-pairs)]
-    ;(clojure.pprint/pprint tree)
   (let [clean-tree (process-bnf-file tree)]
-    ;(clojure.pprint/pprint clean-tree)
     ((create-metaparser clean-tree) testfile))))

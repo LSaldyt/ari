@@ -123,7 +123,12 @@
   (many (process-ebnf-element (:element element) ptree)))
 
 (defn process-terminal [element ptree]
-  (token (first (:string (:terminal element)))))
+  (let [item (first (:string element))]
+    (println "here")
+    (println item)
+    (if (= item "\\n")
+      (tag "newline")
+      (token item))))
 
 (defn process-ref [element ptree]
   (let [k (first (:name (:identifier element)))]
@@ -162,12 +167,19 @@
 
 (def special-separators [["\"" "\"" :string] ["'" "'" :string] ["#" "\n" :comment]])
 
+(def tag-pairs [[#"[_a-zA-Z][_a-zA-Z0-9]{0,30}" "name"]
+                [#"'" "quote"]
+                [#"\n" "newline"]
+                [#" " "space"]
+                [#"\\|" "operator"]
+                [#":" "colon"]])
+
 (defn create-ebnf-metaparser [tree]
   (fn [filename] (read-source filename
                               (get tree "body")
                               [" " "(" ")" "\n"]
                               special-separators
-                              [])))
+                              tag-pairs)))
 
 (defn ebnf [filename]
   (let [[tree remaining log] 
@@ -176,8 +188,11 @@
                      separators 
                      special-separators
                      tag-pairs)]
+    (println "EBNF Log:")
     (clojure.pprint/pprint log)
+    (println "Tree:")
+    (clojure.pprint/pprint tree)
     (let [clean-tree (process-ebnf-tree tree)]
-      ;(clojure.pprint/pprint clean-tree)
-      ;(println (get clean-tree "body"))
+      (println "Result:")
+      (clojure.pprint/pprint clean-tree)
       (create-ebnf-metaparser clean-tree))))
