@@ -10,7 +10,7 @@
 ; Once there is no input left, create a parse tree with the longest parser. If two syntax elements are ambiguous, throw an error.
 
 ; Parser structure
-; [tokens] -> {tree}, [remaining tokens]
+; [tokens log] -> {tree}, [remaining tokens]
 
 ; assignment([[x ident] [= op] [2 int]]) -> {:assignment {:name x :op = :value 2}}
 
@@ -36,7 +36,7 @@
         nil))))
 
 (defn- token-matcher-wrapper [parser]
-  (fn [tokens] 
+  (fn [tokens log] 
     (let [result (parser (first tokens))]
       (if result
         (let [[token tag k] result]
@@ -68,16 +68,13 @@
   ([] (just any any))
   ([k] (just any any k)))
 
-
-; [tokens] -> {tree}, [remaining tokens]
-
 (defn conseq [given-parsers]
-  (fn [tokens] (loop [parsers   given-parsers
+  (fn [tokens log] (loop [parsers   given-parsers
                       remaining tokens
                       tree  '()]
                  (if (empty? parsers)
                    [{:sequence tree} remaining]
-                   (let [result ((first parsers) remaining)]
+                   (let [result ((first parsers) remaining log)]
                      (if (not result)
                        (do 
                          nil)
@@ -89,11 +86,11 @@
                                   (concat tree (list in-tree)))))))))))
 
 (defn many [given-parser]
-  (fn [tokens] (loop [remaining tokens
+  (fn [tokens log] (loop [remaining tokens
                       values  '()]
                  (if (empty? remaining)
                    [{:values values} remaining]
-                   (let [result (given-parser remaining)]
+                   (let [result (given-parser remaining log)]
                      (if (not result)
                        [{:values values} remaining]
                        (let [[in-values in-remaining] result]
@@ -101,17 +98,17 @@
                                 (concat values (list in-values))))))))))
 
 (defn many1 [given-parser]
-  (fn [tokens]
-    (let [[tree remaining] ((many given-parser) tokens)]
+  (fn [tokens log]
+    (let [[tree remaining] ((many given-parser) tokens log)]
       (if (empty? (:values tree))
         nil
         [tree remaining]))))
 
 (defn from [parsers]
-  (fn [tokens] (loop [remaining-parsers parsers]
+  (fn [tokens log] (loop [remaining-parsers parsers]
                  (if (empty? remaining-parsers)
                    nil
-                   (let [result ((first remaining-parsers) tokens)]
+                   (let [result ((first remaining-parsers) tokens log)]
                      (if (not (nil? result))
                        result
                        (recur (rest remaining-parsers))))))))
@@ -132,15 +129,15 @@
               (some #(= (fn-name x) (fn-name %)) out-parsers)) parsers)))
 
 (defn optional [parser]
-  (fn [tokens] 
-    (let [result (parser tokens)]
+  (fn [tokens log] 
+    (let [result (parser tokens log)]
       (if result
         result
         [{} tokens]))))
 
 (defn discard [parser]
-  (fn [tokens]
-    (let [result (parser tokens)]
+  (fn [tokens log]
+    (let [result (parser tokens log)]
       (if result
         (let [[tree remaining] result]
           [nil remaining])
@@ -150,16 +147,16 @@
   [(apply merge (:sequence tree)) remaining])
 
 (defn conseq-merge [given-parsers]
-  (fn [tokens]
-    (unsequence ((conseq given-parsers) tokens))))
+  (fn [tokens log]
+    (unsequence ((conseq given-parsers) tokens log))))
 
 (defn- extract-sequences [tree]
   (map #(first (:sequence %)) (:values tree)))
 
 (defn- create-sep-by [one]
   (fn [item-parser sep-parser]
-    (fn [tokens]
-      (let [result (item-parser tokens)]
+    (fn [tokens log]
+      (let [result (item-parser tokens log)]
         (if (nil? result)
           (if one
             nil
@@ -167,7 +164,8 @@
           (let [[tree remaining] result]
             (let [in-result 
                   (((if one many1 many) (conseq [sep-parser item-parser])) 
-                   remaining)]
+                   remaining 
+                   log)]
               (if (nil? in-result)
                 (if one
                   nil
@@ -181,22 +179,22 @@
 (def sep-by1 (create-sep-by true))
 
 (defn create-ref-parser [dict k]
-  (fn [tokens] ((k dict) tokens)))
+  (fn [tokens log] ((k dict) tokens)))
 
 (defmacro create-parser [ident parser]
-  `(fn [tokens#]
-     (let [[tree# remaining#] (~parser tokens#)]
+  `(fn [tokens# log#]
+     (let [[tree# remaining#] (~parser tokens# log#)]
        (if (nil? tree#)
          nil
          [{(keyword '~ident) tree#} remaining#]))))
 
 (defmacro defparser [ident parser]
-  `(defn ~ident [tokens#]
-     (let [[tree# remaining#] (~parser tokens#)]
+  `(defn ~ident [tokens# log#]
+     (let [[tree# remaining#] (~parser tokens# log#)]
        (if (nil? tree#)
          nil
          [{(keyword '~ident) tree#} remaining#]))))
 
 (defn parse [parser content]
-  (parser content))
+  (parser content {}))
 
