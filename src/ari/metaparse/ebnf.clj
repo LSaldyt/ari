@@ -127,7 +127,7 @@
 
 (defn process-ref [element ptree]
   (let [k (first (:name (:identifier element)))]
-    (fn [tokens log] ((get @ptree k) tokens log))))
+    (retrieve k ptree)))
 
 (defn process-ebnf-element [element ptree]
   (let [[k tree] (break-tree element)]

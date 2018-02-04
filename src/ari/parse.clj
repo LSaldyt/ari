@@ -14,12 +14,6 @@
 
 ; assignment([[x ident] [= op] [2 int]]) -> {:assignment {:name x :op = :value 2}}
 
-; Basic parser elements:
-; 
-; x inOrder  
-; x just
-; x many
-; x anyof
 
 (def any "*any*")
 
@@ -195,6 +189,9 @@
          nil
          [{(keyword '~ident) tree#} remaining#]))))
 
+(defn retrieve [k ptree-atom]
+  (fn [tokens log] ((get @ptree-atom k) tokens log)))
+
 (defn parse [parser content]
-  (parser content {}))
+  (parser content {:head [:log]}))
 
