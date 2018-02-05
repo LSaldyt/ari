@@ -183,7 +183,7 @@
         (if (nil? tree)
           (if one
             [nil remaining log1]
-            [tree remaining log1])
+            [{} remaining log1])
           (let [[in-tree in-remaining in-log]
                 (((if one many1 many) (conseq [sep-parser item-parser])) 
                  remaining 
@@ -191,7 +191,7 @@
             (if (nil? in-tree)
               (if one
                 [nil in-remaining in-log]
-                [tree in-remaining in-log])
+                [{} in-remaining in-log])
               [{:values (concat (list tree) 
                                 (extract-sequences in-tree))} 
                in-remaining
