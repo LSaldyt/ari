@@ -41,7 +41,7 @@
     (let [result (parser (first tokens))]
       (if result
         (let [[token tag k] result]
-          [(if (nil? k)
+          [(if (nil? k) ; Presence of k determines if value is kept
              {}
              {k [token tag]})
            (rest tokens)
@@ -113,7 +113,7 @@
     (let [log (log/log log "Began many1")
           [tree remaining in-log] (use-parser (many given-parser) tokens log)]
       (if (empty? (:values tree))
-        [nil tokens (log/log in-log "Many1 failure")]
+        [nil remaining (log/log in-log "Many1 failure")]
         [tree remaining (log/log in-log (str "Many1 success"))]))))
 
 (defn from [parsers]
@@ -124,6 +124,7 @@
                    [nil tokens (log/log log "From failure")]
                    (let [[tree remaining in-log] 
                          (use-parser (first remaining-parsers) tokens log)]
+                     (println tree)
                      (if (not (nil? tree))
                        [tree 
                         remaining 
@@ -149,6 +150,7 @@
   (fn [tokens log] 
     (let [log (log/log log "Begin Optional")
           [tree remaining in-log] (use-parser parser tokens log)]
+      (println "Optional result: " tree)
       [(if (nil? tree) {} tree)
        remaining
        (log/log in-log (str "Ran optional (" 
@@ -159,6 +161,7 @@
   (fn [tokens log]
     (let [log (log/log log "Began Discard")
           [tree remaining in-log] (use-parser parser tokens log)]
+      (println "Discard result: " tree)
       (if (nil? tree)
         [nil remaining (log/log in-log "Discard failure")]
         [{} remaining (log/log in-log "Discard success")]))))
@@ -180,7 +183,7 @@
         (if (nil? tree)
           (if one
             [nil remaining log1]
-            [{} remaining log1])
+            [tree remaining log1])
           (let [[in-tree in-remaining in-log]
                 (((if one many1 many) (conseq [sep-parser item-parser])) 
                  remaining 
@@ -223,6 +226,6 @@
       result)))
 
 (defn parse [parser content]
-  (println parser)
+  (println "Parsing " parser)
   (parser content {:head [:all]}))
 

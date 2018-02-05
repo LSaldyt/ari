@@ -117,12 +117,13 @@
 (def special-separators [["\"" "\"" :string] ["'" "'" :string] ["#" "\n" :comment]])
 
 (defn create-metaparser [bnf-file-tree-clean]
-  ;(clojure.pprint/pprint (:taggers bnf-file-tree-clean))
   (fn [filename] (read-source filename
                               (many (from (:parsers bnf-file-tree-clean)))
                               (:separators bnf-file-tree-clean)
                               special-separators
-                              (map #(list (re-pattern (first %)) (second %)) (:taggers bnf-file-tree-clean)))))
+                              (map 
+                                #(list (re-pattern (first %)) (second %)) 
+                                (:taggers bnf-file-tree-clean)))))
 
 (defn pybnf [filename testfile]
   (let [[tree remaining log] 
@@ -131,7 +132,6 @@
                      separators 
                      special-separators
                      tag-pairs)]
-    (println "HERE")
-    (/ 1 0)
   (let [clean-tree (process-bnf-file tree)]
+    ;(clojure.pprint/pprint clean-tree)
     ((create-metaparser clean-tree) testfile))))
