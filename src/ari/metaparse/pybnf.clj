@@ -97,7 +97,13 @@
 (defn outer-create-syntax-element [tree]
   (let [{ident :name :as all} (:syntax-element tree)
         inner (dissoc all :name)]
-    (create-syntax-element inner)))
+    (println "")
+    (println "Creating syntax element parser from: ")
+    (clojure.pprint/pprint inner)
+    (let [result 
+          (create-syntax-element inner)]
+      (println result)
+      result)))
 
 
 (defn process-bnf-file [tree]

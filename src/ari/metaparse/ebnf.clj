@@ -141,10 +141,7 @@
           (= k :identifier)
           (process-ref element ptree)
           :else
-          (do
-            (println "Non-matching element:")
-            (println element)
-            element))))
+          element)))
 
 (defn get-identifier [definition]
   (first (:name (:identifier definition))))
@@ -171,7 +168,7 @@
 
 (defn create-ebnf-metaparser [tree]
   (fn [filename] (read-source filename
-                              (get tree "body")
+                              (get tree "list")
                               [" " "(" ")" "\n"]
                               special-separators
                               tag-pairs)))
@@ -187,6 +184,8 @@
     (clojure.pprint/pprint log)
     (println "Tree:")
     (clojure.pprint/pprint tree)
+    (println "Remaining:")
+    (clojure.pprint/pprint remaining)
     (let [clean-tree (process-ebnf-tree tree)]
       (println "Result:")
       (clojure.pprint/pprint clean-tree)

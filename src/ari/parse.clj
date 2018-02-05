@@ -18,7 +18,6 @@
 (defn use-parser [parser tokens log]
   (let [log (log/log-push log "test")
         [tree remaining in-log] (parser tokens log)
-        in-log (log/join log in-log)
         in-log (log/log-pop in-log)]
     [tree remaining in-log]))
 
@@ -124,7 +123,6 @@
                    [nil tokens (log/log log "From failure")]
                    (let [[tree remaining in-log] 
                          (use-parser (first remaining-parsers) tokens log)]
-                     (println tree)
                      (if (not (nil? tree))
                        [tree 
                         remaining 
