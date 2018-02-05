@@ -4,6 +4,7 @@
 
 (defn read-source [infile parser separators special-separators tag-pairs]
   (println "Reading source")
+  (println infile)
   (println parser)
   (println separators)
   (println special-separators)

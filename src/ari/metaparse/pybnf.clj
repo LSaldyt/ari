@@ -107,6 +107,10 @@
                     (:values (:separator-def (:bnf-file tree))))
    :parsers (map outer-create-syntax-element (:values (:bnf-file tree)))})
 
+(defn add-to-bnf-file [tree]
+  (let [separators (:separators tree)]
+    (assoc tree :separators (concat separators (list "\n")))))
+
 (def tag-pairs [[#"[_a-zA-Z][_a-zA-Z0-9]{0,30}" "name"]
                 [#"'" "quote"]
                 [#"\n" "newline"]
@@ -132,6 +136,6 @@
                      separators 
                      special-separators
                      tag-pairs)]
-  (let [clean-tree (process-bnf-file tree)]
+  (let [clean-tree (add-to-bnf-file (process-bnf-file tree))]
     (clojure.pprint/pprint clean-tree)
     ((create-metaparser clean-tree) testfile))))
