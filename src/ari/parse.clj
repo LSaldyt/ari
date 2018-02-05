@@ -88,7 +88,7 @@
                             in-remaining
                             (if (nil? in-tree)
                               tree
-                              (concat tree (list in-tree)))
+                              (concat tree (remove empty? (list in-tree))))
                             in-log)))))))
 
 (defn many [given-parser]
@@ -174,6 +174,8 @@
     (unsequence ((conseq given-parsers) tokens log))))
 
 (defn- extract-sequences [tree]
+  (println "Extracting: " tree)
+  (println "Extracted: " (map #(first (:sequence %)) (:values tree)))
   (map #(first (:sequence %)) (:values tree)))
 
 (defn- create-sep-by [one]
@@ -191,7 +193,7 @@
             (if (nil? in-tree)
               (if one
                 [nil in-remaining in-log]
-                [{} in-remaining in-log])
+                [tree in-remaining in-log])
               [{:values (concat (list tree) 
                                 (extract-sequences in-tree))} 
                in-remaining
