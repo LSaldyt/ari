@@ -1,6 +1,7 @@
 (ns ari.metaparse.ebnf 
   (:require [ari.lex :refer [lex]]
-            [ari.parse :refer :all]
+            [ari.parse.parse :refer :all]
+            [ari.parse.base :refer :all]
             [ari.translate :refer [read-source]]))
 
 ; ISO/IEC 14977 standard for EBNF

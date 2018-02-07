@@ -1,6 +1,7 @@
 (ns ari.metaparse.pybnf
   (:require [ari.lex :refer [lex]]
-            [ari.parse :refer :all]
+            [ari.parse.parse :refer :all]
+            [ari.parse.base :refer :all]
             [ari.translate :refer [read-source]]))
 
 ; Simple pyBNF parser-generator form for testing:

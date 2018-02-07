@@ -1,5 +1,5 @@
 (ns ari.translate
-  (:require [ari.parse :refer [parse]]
+  (:require [ari.parse.parse :refer [parse]]
             [ari.lex :refer [lex]]))
 
 (defn read-source [infile parser separators special-separators tag-pairs]
