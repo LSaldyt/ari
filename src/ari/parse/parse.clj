@@ -202,6 +202,6 @@
       result)))
 
 (defn parse [parser content]
-  (println "Parsing " );parser)
+  (println "Parsing " )
   (parser content {:head [:all]}))
 

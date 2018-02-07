@@ -94,7 +94,6 @@
         item))
 
 (defn create-direct-token [tree]
-  (println "Direct Token:")
   (just (replace-special (first (get tree :token [any])))
         (replace-special (first (get tree :tag [any])))))
 
@@ -155,5 +154,4 @@
                      special-separators
                      tag-pairs)]
   (let [clean-tree (add-to-bnf-file (process-bnf-file tree))]
-    (clojure.pprint/pprint clean-tree)
     ((create-metaparser clean-tree) testfile))))
