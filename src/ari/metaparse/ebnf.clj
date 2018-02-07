@@ -56,7 +56,7 @@
                          (token ";")
                          whitespace]))
 
-(defparser alt-element (any-except elements alternation))
+(defparser alt-element (from-except elements alternation))
 
 (defparser alternation (sep-by1 alt-element (white (token "|"))))
 
@@ -81,7 +81,7 @@
                        whitespace
                        (token ")") ]))
 
-(defparser con-element (any-except elements concatenation alternation))
+(defparser con-element (from-except elements concatenation alternation))
 
 (defparser concatenation (sep-by1 con-element (white (token ","))))
 
