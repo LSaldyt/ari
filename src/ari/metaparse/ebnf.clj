@@ -31,7 +31,7 @@
 (def whitespace (optional (discard (many (from [(tag "space") (tag "newline")])))))
 
 (defn white [parser]
-  (discard (conseq-merge [whitespace parser whitespace])))
+  (conseq-merge [whitespace parser whitespace]))
 
 (defparser terminal (tag :string :string))
 (defparser special (tag "special" :special))
@@ -83,15 +83,25 @@
 
 (defparser con-element (any-except elements concatenation alternation))
 
+(defparser catered (conseq-merge
+                     [(tag "space")
+                      (token "list")
+                      (token ",")
+                      (tag "space")
+                      (tag :string)
+                      ]))
+
 (defparser concatenation 
   (fn [tokens log]
     (println "HERE")
     (let [result ((sep-by1 con-element (white (token ","))) tokens log)]
+    ;(let [result ((conseq-merge [identifier (white (token ",")) terminal]) tokens log)]
       (println "DONE")
       result)))
 
 ; So that elements is a list of legit, defined functions
-(def elements [concatenation
+(def elements [;catered
+               concatenation
                grouping
                repetition
                optional-form

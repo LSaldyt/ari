@@ -80,7 +80,7 @@
                    [{:sequence tree} remaining (log/log loop-log (str "Conseq Success"))]
                  (let [[in-tree in-remaining in-log] 
                        (use-parser (first parsers) remaining loop-log)
-                       in-log (log/log in-log (str "Next: "(first in-remaining)))]
+                       in-log (log/log in-log (str "Next: " (vec in-remaining)))]
                    (if (nil? in-tree)
                      [nil in-remaining (log/log in-log "Stopped conseq")]
                      (recur (rest parsers)
