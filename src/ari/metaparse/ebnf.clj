@@ -29,18 +29,12 @@
                 [#":" "colon"]])
 
 (def whitespace (optional (discard (many (from [(tag "space") (tag "newline")])))))
-;(def whitespace (optional (many (from [(tag "space") (tag "newline")]))))
 
-(defn white [parser]
-  (fn [tokens log]
-    (let [result ((conseq-merge [whitespace parser whitespace]) tokens log)]
-      (println "WHITE:")
-      (println result)
-      result)))
+(defn white [parser] (conseq-merge [whitespace parser whitespace]))
 
-(defparser terminal (tag :string :string))
-(defparser special (tag "special" :special))
-(defparser identifier (tag "name" :name))
+(def terminal   (tag :string   :terminal))
+(def special    (tag "special" :special))
+(def identifier (tag "name"    :identifier))
 
 (declare alternation)
 (declare concatenation)
@@ -88,25 +82,10 @@
 
 (defparser con-element (any-except elements concatenation alternation))
 
-(defparser catered (conseq-merge
-                     [(tag "space")
-                      (token "list")
-                      (token ",")
-                      (tag "space")
-                      (tag :string)
-                      ]))
-
-(defparser concatenation 
-  (fn [tokens log]
-    (println "HERE")
-    (let [result ((sep-by1 con-element (white (token ","))) tokens log)]
-    ;(let [result ((conseq-merge [identifier (white (token ",")) terminal]) tokens log)]
-      (println "DONE")
-      result)))
+(defparser concatenation (sep-by1 con-element (white (token ","))))
 
 ; So that elements is a list of legit, defined functions
-(def elements [;catered
-               concatenation
+(def elements [concatenation
                grouping
                repetition
                optional-form
@@ -124,8 +103,11 @@
     [k (k single-tree)]))
 
 (defn process-concatenation [element ptree]
+  (println "Processing Concatenation")
   (let [values (map :con-element (:values element))]
+    (clojure.pprint/pprint values)
     (let [elements (map #(process-ebnf-element % ptree) values)]
+      (clojure.pprint/pprint elements)
       (conseq-merge elements))))
 
 (defn process-alternation [element ptree]
@@ -136,14 +118,10 @@
   (many (process-ebnf-element (:element element) ptree)))
 
 (defn process-terminal [element ptree]
-  (let [item (first (:string element))]
+  (let [item (first element)]
       (token item)))
 
-(defn process-special [element ptree]
-  (println element)
-  (/ 1 0))
-
-(defn replace-special [item]
+(defn- replace-special [item]
   (cond (= item "NEWLINE")
         "\n"
         (= item "SPACE")
@@ -153,11 +131,18 @@
         :else
         item))
 
+(defn process-special [element ptree]
+  (token (replace-special (first element))))
+
 (defn process-ref [element ptree]
-  (let [k (first (:name (:identifier element)))]
+  (println "HERE")
+  (println element)
+  (let [k (first (:identifier element))]
     (retrieve k ptree)))
 
 (defn process-ebnf-element [element ptree]
+  (println "Processing Element")
+  (clojure.pprint/pprint element)
   (let [[k tree] (break-tree element)]
     (cond (= k :alternation)
           (process-alternation tree ptree)
@@ -175,9 +160,11 @@
           element)))
 
 (defn get-identifier [definition]
-  (first (:name (:identifier definition))))
+  (first (:identifier definition)))
 
 (defn process-ebnf-tree [tree]
+  (println "Processing Tree")
+  (clojure.pprint/pprint tree)
   (let [values (:values tree)]
     (def parser-tree (atom {}))
     (let [new-tree (into {} 
@@ -199,7 +186,7 @@
 
 (defn create-ebnf-metaparser [tree]
   (fn [filename] (read-source filename
-                              (get tree "list")
+                              (get tree "body")
                               [" " "(" ")" "\n"]
                               special-separators
                               tag-pairs)))
