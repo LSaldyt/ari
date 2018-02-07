@@ -79,8 +79,8 @@
                  (if (empty? parsers)
                    [{:sequence tree} remaining (log/log loop-log (str "Conseq Success"))]
                  (let [[in-tree in-remaining in-log] 
-                       (use-parser (first parsers) remaining loop-log)
-                       in-log (log/log in-log (str "Next: " (vec in-remaining)))]
+                       (use-parser (first parsers) remaining loop-log)]
+                       ;in-log (log/log in-log (str "Next: " (vec in-remaining)))]
                    (if (nil? in-tree)
                      [nil in-remaining (log/log in-log "Stopped conseq")]
                      (recur (rest parsers)
@@ -228,6 +228,6 @@
       result)))
 
 (defn parse [parser content]
-  (println "Parsing " parser)
+  (println "Parsing " );parser)
   (parser content {:head [:all]}))
 

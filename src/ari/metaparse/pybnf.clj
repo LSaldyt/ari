@@ -94,7 +94,6 @@
 
 (defn create-direct-token [tree]
   (println "Direct Token:")
-  (clojure.pprint/pprint tree)
   (just (replace-special (first (get tree :token [any])))
         (replace-special (first (get tree :tag [any])))))
 
@@ -113,12 +112,8 @@
 (defn outer-create-syntax-element [tree]
   (let [{ident :name :as all} (:syntax-element tree)
         inner (dissoc all :name)]
-    (println "")
-    (println "Creating syntax element parser from: ")
-    (clojure.pprint/pprint inner)
     (let [result 
           (create-syntax-element inner)]
-      (println result)
       result)))
 
 

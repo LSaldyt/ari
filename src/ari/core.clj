@@ -19,16 +19,14 @@
      :default false :flag true])]
     (when (:help opts)
       (println banner))
-    ; (println (pybnf "data/languages/simple.lang" "data/samples/test.simp"))
+    (println (pybnf "data/languages/simple.lang" "data/samples/test.simp"))
     ;(clojure.pprint/pprint (ebnf "data/languages/ebnf.lang"))
     ;(clojure.pprint/pprint (ebnf "data/languages/pascal_like.lang"))
     ;(println "EBNF/LISP tests")
     ;(let [lisp (ebnf "data/languages/lisp.lang")]
     ;  ;(println lisp)
     ;  (clojure.pprint/pprint (lisp "data/samples/simple_lisp.lisp")))
-    (println "Test")
     (let [t (ebnf "data/languages/test.lang")]
-      (clojure.pprint/pprint (t "data/samples/test.test")))
-    ))
+      (clojure.pprint/pprint (t "data/samples/test.test")))))
     ;(let [[infile outfile] args]
     ;  (translate infile outfile test-parser test-separators test-tag-pairs))))

@@ -126,5 +126,5 @@
             (separate separators special-separators)
             (do-tag (create-taggers tag-pairs)))]
     (println "Done")
-    (clojure.pprint/pprint result)
+    ;(clojure.pprint/pprint result)
     result))

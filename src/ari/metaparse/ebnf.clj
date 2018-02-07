@@ -103,11 +103,8 @@
     [k (k single-tree)]))
 
 (defn process-concatenation [element ptree]
-  (println "Processing Concatenation")
   (let [values (map :con-element (:values element))]
-    (clojure.pprint/pprint values)
     (let [elements (map #(process-ebnf-element % ptree) values)]
-      (clojure.pprint/pprint elements)
       (conseq-merge elements))))
 
 (defn process-alternation [element ptree]
@@ -135,14 +132,10 @@
   (token (replace-special (first element))))
 
 (defn process-ref [element ptree]
-  (println "HERE")
-  (println element)
   (let [k (first (:identifier element))]
     (retrieve k ptree)))
 
 (defn process-ebnf-element [element ptree]
-  (println "Processing Element")
-  (clojure.pprint/pprint element)
   (let [[k tree] (break-tree element)]
     (cond (= k :alternation)
           (process-alternation tree ptree)
@@ -163,8 +156,6 @@
   (first (:identifier definition)))
 
 (defn process-ebnf-tree [tree]
-  (println "Processing Tree")
-  (clojure.pprint/pprint tree)
   (let [values (:values tree)]
     (def parser-tree (atom {}))
     (let [new-tree (into {} 
