@@ -29,9 +29,14 @@
                 [#":" "colon"]])
 
 (def whitespace (optional (discard (many (from [(tag "space") (tag "newline")])))))
+;(def whitespace (optional (many (from [(tag "space") (tag "newline")]))))
 
 (defn white [parser]
-  (conseq-merge [whitespace parser whitespace]))
+  (fn [tokens log]
+    (let [result ((conseq-merge [whitespace parser whitespace]) tokens log)]
+      (println "WHITE:")
+      (println result)
+      result)))
 
 (defparser terminal (tag :string :string))
 (defparser special (tag "special" :special))

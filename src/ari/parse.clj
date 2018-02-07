@@ -85,9 +85,8 @@
                      [nil in-remaining (log/log in-log "Stopped conseq")]
                      (recur (rest parsers)
                             in-remaining
-                            (if (nil? in-tree)
-                              tree
-                              (concat tree (remove empty? (list in-tree))))
+                            ; Trust sub-parsers to only provide valid maps. Don't bother removing empty ones (They'll be summed with conseq-merge anyway).
+                            (concat tree (list in-tree));(remove empty? (list in-tree)))
                             in-log)))))))
 
 (defn many [given-parser]
@@ -159,12 +158,14 @@
   (fn [tokens log]
     (let [log (log/log log "Began Discard")
           [tree remaining in-log] (use-parser parser tokens log)]
-      (println "Discard result: " tree)
+      (println "Discard result: " tree " " (nil? tree))
       (if (nil? tree)
         [nil remaining (log/log in-log "Discard failure")]
         [{} remaining (log/log in-log "Discard Success")]))))
 
 (defn- unsequence [[tree remaining log]] 
+  (println "unseq")
+  (println tree)
   [(apply merge (:sequence tree)) remaining log])
 
 (defn conseq-merge [given-parsers]
