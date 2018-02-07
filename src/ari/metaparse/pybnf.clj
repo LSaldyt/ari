@@ -62,7 +62,7 @@
 (defparser separator-def (conseq-merge
                            [(token "__separators__")
                             (token "=")
-                            (sep-by (token any :sep) (token ","))
+                            (sep-by (tag :string :sep) (token ","))
                             (tag "newline")]))
 
 (defparser tagger-def (conseq-merge
@@ -70,9 +70,9 @@
                          (token "=")
                          (token "{")
                          (sep-by (conseq-merge 
-                                  [(token any :regex) 
+                                  [(tag :string :regex) 
                                    (token ":")
-                                   (token any :tag)])
+                                   (tag :string :tag)])
                                  (token ","))
                          (token "}")
                          (tag "newline")]))

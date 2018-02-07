@@ -147,7 +147,7 @@
   (fn [tokens log] 
     (let [log (log/log log "Begin Optional")
           [tree remaining in-log] (use-parser parser tokens log)]
-      (println "Optional result: " tree)
+      ;(println "Optional result: " tree)
       [(if (nil? tree) {} tree)
        remaining
        (log/log in-log (str "Ran optional (" 
@@ -158,14 +158,12 @@
   (fn [tokens log]
     (let [log (log/log log "Began Discard")
           [tree remaining in-log] (use-parser parser tokens log)]
-      (println "Discard result: " tree " " (nil? tree))
+      ;(println "Discard result: " tree " " (nil? tree))
       (if (nil? tree)
         [nil remaining (log/log in-log "Discard failure")]
         [{} remaining (log/log in-log "Discard Success")]))))
 
 (defn- unsequence [[tree remaining log]] 
-  (println "unseq")
-  (println tree)
   [(apply merge (:sequence tree)) remaining log])
 
 (defn conseq-merge [given-parsers]
@@ -173,8 +171,8 @@
     (unsequence ((conseq given-parsers) tokens log))))
 
 (defn- extract-sequences [tree]
-  (println "Extracting: " tree)
-  (println "Extracted: " (map #(first (:sequence %)) (:values tree)))
+  ; (println "Extracting: " tree)
+  ; (println "Extracted: " (map #(first (:sequence %)) (:values tree)))
   (map #(first (map merge (remove empty? (:sequence %)))) (:values tree)))
 
 (defn- create-sep-by [one]
@@ -185,7 +183,6 @@
           (if one
             [nil remaining log1]
             [{} remaining log1])
-          (do (println "B")
           (let [[in-tree in-remaining in-log]
                 (((if one many1 many) (conseq [sep-parser item-parser])) 
                  remaining 
@@ -197,7 +194,7 @@
               [{:values (concat (list tree) 
                                 (extract-sequences in-tree))} 
                in-remaining
-               in-log]))))))))
+               in-log])))))))
 
 (def sep-by  (create-sep-by false))
 (def sep-by1 (create-sep-by true))
