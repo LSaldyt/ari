@@ -201,7 +201,9 @@
           result ((get @ptree-atom k) tokens log)]
       result)))
 
-(defn parse [parser content]
+(defn parse [parser log content]
   (println "Parsing " )
-  (parser content {:head [:all]}))
+  [(parser content log) (log/log log "Parsing finished")])
 
+(def whitespace (optional (discard (many (from [(tag "space") (tag "newline")])))))
+(defn white [parser] (conseq-merge [whitespace parser whitespace]))

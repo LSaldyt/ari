@@ -4,7 +4,6 @@
   (let [head (:head log-tree)
         head+ (concat head (list :log))
         result (get-in log-tree head+)]
-    ;(println (apply str (repeat (count head) "  ")) message)
     (if result
       (assoc-in log-tree head+ (concat result (list message)))
       (assoc-in log-tree head+ (list message)))))

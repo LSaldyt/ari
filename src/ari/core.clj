@@ -20,7 +20,7 @@
      :default false :flag true])]
     (when (:help opts)
       (println banner))
-    (println (pybnf "data/languages/simple.lang" "data/samples/test.simp"))
+    ;(println (pybnf "data/languages/simple.lang" "data/samples/test.simp"))
     ;(clojure.pprint/pprint (ebnf "data/languages/ebnf.lang"))
     ;(clojure.pprint/pprint (ebnf "data/languages/pascal_like.lang"))
     ;(println "EBNF/LISP tests")

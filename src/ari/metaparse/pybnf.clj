@@ -22,8 +22,6 @@
 
 (declare parser-part)
 
-(def whitespace (discard (many (from [(token " ") (token "\n")]))))
-
 (defparser identifier (tag "name" :identifier))
 (defparser direct-token (tag :string :token))
 
@@ -144,7 +142,9 @@
                               special-separators
                               (map 
                                 #(list (re-pattern (first %)) (second %)) 
-                                (:taggers bnf-file-tree-clean)))))
+                                (:taggers bnf-file-tree-clean))
+                              {:head [:all]}
+                              )))
 
 (defn pybnf [filename testfile]
   (let [[tree remaining log] 
@@ -152,6 +152,7 @@
                      bnf-file 
                      separators 
                      special-separators
-                     tag-pairs)]
+                     tag-pairs
+                     {:head [:all]})]
   (let [clean-tree (add-to-bnf-file (process-bnf-file tree))]
     ((create-metaparser clean-tree) testfile))))

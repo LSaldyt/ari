@@ -29,10 +29,6 @@
                 [#"\\|" "operator"]
                 [#":" "colon"]])
 
-(def whitespace (optional (discard (many (from [(tag "space") (tag "newline")])))))
-
-(defn white [parser] (conseq-merge [whitespace parser whitespace]))
-
 (def terminal   (tag :string   :terminal))
 (def special    (tag "special" :special))
 (def identifier (tag "name"    :identifier))
@@ -181,17 +177,22 @@
                               (get tree "body")
                               [" " "(" ")" "\n"]
                               special-separators
-                              tag-pairs)))
+                              tag-pairs
+                              {:head [:all]}
+                              )))
 
 (defn ebnf [filename]
-  (let [[tree remaining log] 
+  (let [[[tree remaining ebnf-log] log]
         (read-source filename 
                      (many definition)
                      separators 
                      special-separators
-                     tag-pairs)]
-    (println "EBNF Log:")
+                     tag-pairs
+                     {:head [:all]})]
+    (println "Log:")
     (clojure.pprint/pprint log)
+    (println "EBNF Log:")
+    (clojure.pprint/pprint ebnf-log)
     (println "Tree:")
     (clojure.pprint/pprint tree)
     (println "Remaining:")
