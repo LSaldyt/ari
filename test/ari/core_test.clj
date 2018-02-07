@@ -19,4 +19,22 @@
       ((sep-by1 (tag "name" :name) (token "|"))
                test-tokens
                {}
-               ))))
+               ))))))))
+
+(deftest conseq-test
+  (testing "conseq"
+    (is (not (nil? (first
+      ((conseq-merge [
+        (token "a" :a)
+        (token "|" :pipe)
+        (token "b" :b)])
+       test-tokens
+       {})))))))
+
+(deftest from-test
+  (testing "from"
+    (is (not (nil? (first
+      ((from [(tag "NAH") (tag "name")])
+       [["x" "name"]]
+       {})))))))
+
