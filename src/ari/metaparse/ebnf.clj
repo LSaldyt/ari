@@ -83,16 +83,21 @@
 
 (defparser con-element (any-except elements concatenation alternation))
 
-(defparser concatenation (sep-by1 con-element (white (token ","))))
+(defparser concatenation 
+  (fn [tokens log]
+    (println "HERE")
+    (let [result ((sep-by1 con-element (white (token ","))) tokens log)]
+      (println "DONE")
+      result)))
 
 ; So that elements is a list of legit, defined functions
-(def elements [grouping
+(def elements [concatenation
+               grouping
                repetition
                optional-form
                alternation
-               concatenation
-               terminal
                special
+               terminal
                identifier])
 
 (def special-separators [["\"" "\"" :string] ["'" "'" :string] ["(*" "*)" :comment]])
@@ -117,12 +122,21 @@
 
 (defn process-terminal [element ptree]
   (let [item (first (:string element))]
-    (token item)))
-;     (if (= item "NEWLINE")
-;       (do
-;         (println item)
-;         (tag "newline"))
-;       (token item))))
+      (token item)))
+
+(defn process-special [element ptree]
+  (println element)
+  (/ 1 0))
+
+(defn replace-special [item]
+  (cond (= item "NEWLINE")
+        "\n"
+        (= item "SPACE")
+        " "
+        (= item "TAB")
+        "\t"
+        :else
+        item))
 
 (defn process-ref [element ptree]
   (let [k (first (:name (:identifier element)))]
@@ -138,6 +152,8 @@
           (process-repetition tree ptree)
           (= k :terminal)
           (process-terminal tree ptree)
+          (= k :special)
+          (process-special tree ptree)
           (= k :identifier)
           (process-ref element ptree)
           :else

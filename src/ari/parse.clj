@@ -77,7 +77,7 @@
                       tree  '()
                       loop-log (log/log log "Began conseq")]
                  (if (empty? parsers)
-                   [{:sequence tree} remaining (log/log loop-log (str "Conseq success"))]
+                   [{:sequence tree} remaining (log/log loop-log (str "Conseq Success"))]
                  (let [[in-tree in-remaining in-log] 
                        (use-parser (first parsers) remaining loop-log)
                        in-log (log/log in-log (str "Next: "(first in-remaining)))]
@@ -102,7 +102,7 @@
                    (let [[in-values in-remaining in-log] 
                          (use-parser given-parser remaining loop-log)]
                      (if (nil? in-values)
-                       [{:values values} remaining (log/log in-log "Many success")]
+                       [{:values values} remaining (log/log in-log "Many Success")]
                        (recur in-remaining
                               (concat values (list in-values))
                               in-log)))))))
@@ -113,7 +113,7 @@
           [tree remaining in-log] (use-parser (many given-parser) tokens log)]
       (if (empty? (:values tree))
         [nil remaining (log/log in-log "Many1 failure")]
-        [tree remaining (log/log in-log (str "Many1 success"))]))))
+        [tree remaining (log/log in-log (str "Many1 Success"))]))))
 
 (defn from [parsers]
   (fn [tokens log] 
@@ -126,7 +126,7 @@
                      (if (not (nil? tree))
                        [tree 
                         remaining 
-                        (log/log in-log "From success")]
+                        (log/log in-log "From Success")]
                        (recur (rest remaining-parsers)))))))))
 
 (defn- demunge-fn
@@ -152,7 +152,7 @@
       [(if (nil? tree) {} tree)
        remaining
        (log/log in-log (str "Ran optional (" 
-                            (if (nil? tree) "unsucessfully" "successfully") ")"
+                            (if (nil? tree) "unsucessfully" "Successfully") ")"
                             ))])))
 
 (defn discard [parser]
@@ -162,7 +162,7 @@
       (println "Discard result: " tree)
       (if (nil? tree)
         [nil remaining (log/log in-log "Discard failure")]
-        [{} remaining (log/log in-log "Discard success")]))))
+        [{} remaining (log/log in-log "Discard Success")]))))
 
 (defn- unsequence [[tree remaining log]] 
   [(apply merge (:sequence tree)) remaining log])
@@ -184,6 +184,7 @@
           (if one
             [nil remaining log1]
             [{} remaining log1])
+          (do (println "B")
           (let [[in-tree in-remaining in-log]
                 (((if one many1 many) (conseq [sep-parser item-parser])) 
                  remaining 
@@ -195,7 +196,7 @@
               [{:values (concat (list tree) 
                                 (extract-sequences in-tree))} 
                in-remaining
-               in-log])))))))
+               in-log]))))))))
 
 (def sep-by  (create-sep-by false))
 (def sep-by1 (create-sep-by true))

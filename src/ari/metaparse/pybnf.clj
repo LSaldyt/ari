@@ -82,13 +82,29 @@
                        tagger-def
                        (many syntax-element)]))
 
+(defn replace-special [item]
+  (cond (= item "NEWLINE")
+        "\n"
+        (= item "SPACE")
+        " "
+        (= item "TAB")
+        "\t"
+        :else
+        item))
+
+(defn create-direct-token [tree]
+  (println "Direct Token:")
+  (clojure.pprint/pprint tree)
+  (just (replace-special (first (get tree :token [any])))
+        (replace-special (first (get tree :tag [any])))))
+
 (defn create-syntax-element [tree]
   (let [inner-ident (first (keys tree))
         inner-tree (inner-ident tree)]
     (cond (= inner-ident :or-operator)
           (from (map create-syntax-element (:values inner-tree)))
           (= inner-ident :direct-token)
-          (just (first (get inner-tree :token [any])) (first (get inner-tree :tag [any])))
+          (create-direct-token inner-tree)
           (= inner-ident :key-operator)
           (create-parser (symbol (first (:key inner-tree))) (create-syntax-element (dissoc inner-tree :key)))
           (= inner-ident :many-operator)
