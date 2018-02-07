@@ -1,2 +1,2 @@
 list = "a";
-body="x","y";
+body = list, NEWLINE;

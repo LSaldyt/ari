@@ -175,7 +175,7 @@
 (defn- extract-sequences [tree]
   (println "Extracting: " tree)
   (println "Extracted: " (map #(first (:sequence %)) (:values tree)))
-  (map #(first (:sequence %)) (:values tree)))
+  (map #(first (map merge (remove empty? (:sequence %)))) (:values tree)))
 
 (defn- create-sep-by [one]
   (fn [item-parser sep-parser]
