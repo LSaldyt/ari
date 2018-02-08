@@ -1,7 +1,8 @@
 (ns ari.core_test
   (:require [clojure.test :refer :all]
             [ari.core :refer :all]
-            [ari.parse :refer :all]))
+            [ari.parse.parse :refer :all]
+            [ari.parse.base :refer :all]))
 
 (def test-tokens [["a" "name"] ["|" "pipe"] ["b" "name"]])
 
