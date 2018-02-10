@@ -189,10 +189,10 @@
                      special-separators
                      tag-pairs
                      {:head [:all]})]
-    (println "Log:")
-    (clojure.pprint/pprint log)
-    (println "EBNF Log:")
-    (clojure.pprint/pprint ebnf-log)
+    ; (println "Log:")
+    ; (clojure.pprint/pprint log)
+    ; (println "EBNF Log:")
+    ; (clojure.pprint/pprint ebnf-log)
     (println "Tree:")
     (clojure.pprint/pprint tree)
     (println "Remaining:")
