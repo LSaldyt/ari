@@ -1,5 +1,6 @@
 (ns ari.lex
-  "General lexing module. Converts a raw text file into a list of tagged words based on defined lexical rules")
+  "General lexing module. Converts a raw text file into a list of tagged words based on defined lexical rules"
+  (:require [ari.log :as log]))
 
 (defn front-match? 
   "Check if the leading elements of two sequences match"
@@ -116,10 +117,11 @@
 
 (defn lex 
   "Convert a string (file) into tagged tokens"
-  [separators special-separators tag-pairs content]
+  [separators special-separators tag-pairs log content]
+  (println "Lexing..")
   (let [result
         (-> content
             (separate separators special-separators)
             (do-tag (create-taggers tag-pairs)))]
-    ;(clojure.pprint/pprint result)
-    result))
+    (println "Done")
+    [result (log/log log "Lexing finished")]))
