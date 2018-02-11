@@ -50,6 +50,7 @@
       ((from-except [(tag "NAH") (tag "name")] [(tag "N")])
        [["x" "name"]]
        {})))
+    ; Broken:
     (is (not (full-tree
       ((from-except [n-parser] [n-parser])
        [["x" "N"]]
@@ -65,6 +66,7 @@
           ((many (tag "x"))
            [["x" "name"]["x" "name"]]
           {})))
+    ; broken
     (is (full-tree
           ((many (tag "x"))
            []

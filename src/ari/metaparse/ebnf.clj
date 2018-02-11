@@ -113,7 +113,7 @@
 
 (defn process-terminal [element ptree]
   (let [item (first element)]
-      (token item)))
+      (token item item)))
 
 (defn- replace-special [item]
   (cond (= item "NEWLINE")
@@ -157,9 +157,12 @@
     (def parser-tree (atom {}))
     (let [new-tree (into {} 
             (for [definition values]
-              (let [definition (:definition definition)]
-                [(get-identifier definition) 
-                 (process-ebnf-element (:element definition) parser-tree)])))]
+              (let [definition (:definition definition)
+                    identifier (get-identifier definition)]
+                [identifier
+                 (create-parser 
+                   identifier
+                   (process-ebnf-element (:element definition) parser-tree))])))]
       (reset! parser-tree new-tree))))
 
 (def special-separators [["\"" "\"" :string] ["'" "'" :string] ["#" "\n" :comment]])

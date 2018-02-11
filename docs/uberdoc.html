@@ -2871,7 +2871,8 @@ net.brehaut.ClojureTools = (function (SH) {
 Basically, ari is a framework for doing programming language research. 
 Right now, it is a parser-generator, but eventually it will become a capable translator, based on glossa (github.com/LSaldyt/glossa)</p>
 </div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.8.0</td></tr><tr><td class="dep-name">org.clojure/tools.cli</td><td class="dotted"><hr /></td><td class="dep-version">0.2.4</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#ari.lex">ari.lex</a></li><li><a href="#ari.log">ari.log</a></li><li><a href="#ari.core">ari.core</a></li><li><a href="#ari.metaparse.pybnf">ari.metaparse.pybnf</a></li><li><a href="#ari.metaparse.ebnf">ari.metaparse.ebnf</a></li><li><a href="#ari.parse.base">ari.parse.base</a></li><li><a href="#ari.parse.parse">ari.parse.parse</a></li><li><a href="#ari.translate">ari.translate</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#ari.lex" name="ari.lex"><h1 class="project-name">ari.lex</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>General lexing module. Converts a raw text file into a list of tagged words based on defined lexical rules</p>
-</td><td class="codes"><pre class="brush: clojure">(ns ari.lex)</pre></td></tr><tr><td class="docs"><p>Check if the leading elements of two sequences match</p>
+</td><td class="codes"><pre class="brush: clojure">(ns ari.lex
+  (:require [ari.log :as log]))</pre></td></tr><tr><td class="docs"><p>Check if the leading elements of two sequences match</p>
 </td><td class="codes"><pre class="brush: clojure">(defn front-match? 
   [a b]
   (= (first a) (first b)))</pre></td></tr><tr><td class="docs"><p>Attempt to match a single separator to a string, counting the number of characters that match.</p>
@@ -2968,24 +2969,20 @@ Right now, it is a parser-generator, but eventually it will become a capable tra
           result))
       [token tag])))</pre></td></tr><tr><td class="docs"><p>Convert a string (file) into tagged tokens</p>
 </td><td class="codes"><pre class="brush: clojure">(defn lex 
-  [separators special-separators tag-pairs content]
+  [separators special-separators tag-pairs log content]
   (println &quot;Lexing..&quot;)
-  ; (println separators)
-  ; (println special-separators)
-  ; (println tag-pairs)
   (let [result
         (-&gt; content
             (separate separators special-separators)
             (do-tag (create-taggers tag-pairs)))]
     (println &quot;Done&quot;)
-    ;(clojure.pprint/pprint result)
-    result))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#ari.log" name="ari.log"><h1 class="project-name">ari.log</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+    [result (log/log log &quot;Lexing finished&quot;)]))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#ari.log" name="ari.log"><h1 class="project-name">ari.log</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns ari.log)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn log [log-tree message]
   (let [head (:head log-tree)
         head+ (concat head (list :log))
         result (get-in log-tree head+)]
-    ;(println (apply str (repeat (count head) &quot;  &quot;)) message)
+    (println (apply str (repeat (count head) &quot;  &quot;)) message)
     (if result
       (assoc-in log-tree head+ (concat result (list message)))
       (assoc-in log-tree head+ (list message)))))</pre></td></tr><tr><td class="docs">
@@ -3020,17 +3017,17 @@ Right now, it is a parser-generator, but eventually it will become a capable tra
      :default false :flag true])]
     (when (:help opts)
       (println banner))
-    (println (pybnf &quot;data/languages/simple.lang&quot; &quot;data/samples/test.simp&quot;))
-    ;(clojure.pprint/pprint (ebnf &quot;data/languages/ebnf.lang&quot;))
-    ;(clojure.pprint/pprint (ebnf &quot;data/languages/pascal_like.lang&quot;))
-    ;(println &quot;EBNF/LISP tests&quot;)
-    ;(let [lisp (ebnf &quot;data/languages/lisp.lang&quot;)]
-    ;  ;(println lisp)
-    ;  (clojure.pprint/pprint (lisp &quot;data/samples/simple_lisp.lisp&quot;)))
-    (let [t (ebnf &quot;data/languages/test.lang&quot;)]
-      (clojure.pprint/pprint (t &quot;data/samples/test.test&quot;)))))</pre></td></tr><tr><td class="docs"><p>(let [[infile outfile] args]
- (translate infile outfile test-parser test-separators test-tag-pairs))))</p>
-</td><td class="codes"></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#ari.metaparse.pybnf" name="ari.metaparse.pybnf"><h1 class="project-name">ari.metaparse.pybnf</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+    ; (println (pybnf &quot;data/languages/simple.lang&quot; &quot;data/samples/test.simp&quot;))
+    ; (clojure.pprint/pprint (ebnf &quot;data/languages/ebnf.lang&quot;))
+    (clojure.pprint/pprint (ebnf &quot;data/languages/pascal_like.lang&quot;))
+    (println &quot;EBNF/LISP tests&quot;)
+    (let [lisp (ebnf &quot;data/languages/lisp.lang&quot;)]
+      ;(println lisp)
+      (clojure.pprint/pprint (lisp &quot;data/samples/simple_lisp.lisp&quot;)))
+    ;(let [t (ebnf &quot;data/languages/test.lang&quot;)]
+    ;  (clojure.pprint/pprint (t &quot;data/samples/test.test&quot;)))))
+    ;(let [[infile outfile] args]
+    ;  (translate infile outfile test-parser test-separators test-tag-pairs))))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#ari.metaparse.pybnf" name="ari.metaparse.pybnf"><h1 class="project-name">ari.metaparse.pybnf</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns ari.metaparse.pybnf
   (:require [ari.lex :refer [lex]]
             [ari.parse.parse :refer :all]
@@ -3038,7 +3035,6 @@ Right now, it is a parser-generator, but eventually it will become a capable tra
             [ari.translate :refer [read-source]]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def separators [&quot;:&quot; &quot; &quot; &quot;(&quot; &quot;)&quot; &quot;{&quot; &quot;}&quot; &quot;'&quot; &quot;|&quot; &quot;\n&quot; &quot;.&quot; &quot;!&quot; &quot;`&quot; &quot;@&quot; &quot;,&quot; &quot;=&quot;])</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(declare parser-part)</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def whitespace (discard (many (from [(token &quot; &quot;) (token &quot;\n&quot;)]))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defparser identifier (tag &quot;name&quot; :identifier))
 (defparser direct-token (tag :string :token))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defparser or-operator (conseq-merge 
@@ -3141,14 +3137,16 @@ Right now, it is a parser-generator, but eventually it will become a capable tra
                               special-separators
                               (map 
                                 #(list (re-pattern (first %)) (second %)) 
-                                (:taggers bnf-file-tree-clean)))))</pre></td></tr><tr><td class="docs">
+                                (:taggers bnf-file-tree-clean))
+                              {:head [:all]})))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn pybnf [filename testfile]
   (let [[tree remaining log] 
         (read-source filename 
                      bnf-file 
                      separators 
                      special-separators
-                     tag-pairs)]
+                     tag-pairs
+                     {:head [:all]})]
   (let [clean-tree (add-to-bnf-file (process-bnf-file tree))]
     ((create-metaparser clean-tree) testfile))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#ari.metaparse.ebnf" name="ari.metaparse.ebnf"><h1 class="project-name">ari.metaparse.ebnf</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns ari.metaparse.ebnf 
@@ -3165,8 +3163,6 @@ Right now, it is a parser-generator, but eventually it will become a capable tra
                 [#&quot; &quot; &quot;space&quot;]
                 [#&quot;\\|&quot; &quot;operator&quot;]
                 [#&quot;:&quot; &quot;colon&quot;]])</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def whitespace (optional (discard (many (from [(tag &quot;space&quot;) (tag &quot;newline&quot;)])))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn white [parser] (conseq-merge [whitespace parser whitespace]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def terminal   (tag :string   :terminal))
 (def special    (tag &quot;special&quot; :special))
 (def identifier (tag &quot;name&quot;    :identifier))</pre></td></tr><tr><td class="docs">
@@ -3287,16 +3283,20 @@ Right now, it is a parser-generator, but eventually it will become a capable tra
                               (get tree &quot;body&quot;)
                               [&quot; &quot; &quot;(&quot; &quot;)&quot; &quot;\n&quot;]
                               special-separators
-                              tag-pairs)))</pre></td></tr><tr><td class="docs">
+                              tag-pairs
+                              {:head [:all]})))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn ebnf [filename]
-  (let [[tree remaining log] 
+  (let [[[tree remaining ebnf-log] log]
         (read-source filename 
                      (many definition)
                      separators 
                      special-separators
-                     tag-pairs)]
-    (println &quot;EBNF Log:&quot;)
-    (clojure.pprint/pprint log)
+                     tag-pairs
+                     {:head [:all]})]
+    ; (println &quot;Log:&quot;)
+    ; (clojure.pprint/pprint log)
+    ; (println &quot;EBNF Log:&quot;)
+    ; (clojure.pprint/pprint ebnf-log)
     (println &quot;Tree:&quot;)
     (clojure.pprint/pprint tree)
     (println &quot;Remaining:&quot;)
@@ -3530,24 +3530,24 @@ Right now, it is a parser-generator, but eventually it will become a capable tra
     (let [log (log/log log &quot;Retrieve&quot;)
           result ((get @ptree-atom k) tokens log)]
       result)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn parse [parser content]
+</td><td class="codes"><pre class="brush: clojure">(defn parse [parser log content]
   (println &quot;Parsing &quot; )
-  (parser content {:head [:all]}))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#ari.translate" name="ari.translate"><h1 class="project-name">ari.translate</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+  [(parser content log) (log/log log &quot;Parsing finished&quot;)])</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def whitespace (optional (discard (many (from [(tag &quot;space&quot;) (tag &quot;newline&quot;)])))))
+(defn white [parser] (conseq-merge [whitespace parser whitespace]))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#ari.translate" name="ari.translate"><h1 class="project-name">ari.translate</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns ari.translate
   (:require [ari.parse.parse :refer [parse]]
             [ari.lex :refer [lex]]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn read-source [infile parser separators special-separators tag-pairs]
+</td><td class="codes"><pre class="brush: clojure">(defn read-source [infile parser separators special-separators tag-pairs log]
   (println &quot;Reading source&quot;)
   (println infile)
-  ; (println parser)
-  ; (println separators)
-  ; (println special-separators)
-  ; (println tag-pairs)
-  (-&gt;&gt; (slurp infile)
-       (lex separators special-separators tag-pairs)
-       (parse parser)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn translate [infile outfile parser separators special-separators tag-pairs]
-  (let [result (read-source infile parser separators special-separators tag-pairs)]
+  (let [input (slurp infile)
+        [lex-result log] (lex separators special-separators tag-pairs log input)
+        [parse-result log] (parse parser log lex-result)]
+    [parse-result log]))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn translate [infile outfile parser separators special-separators tag-pairs log]
+  (let [[result log]
+        (read-source infile parser separators special-separators tag-pairs log)]
     (spit outfile result)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/gdeer81/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a><div id="floating-toc"><ul><li class="floating-toc-li" id="floating-toc_ari.lex">ari.lex</li><li class="floating-toc-li" id="floating-toc_ari.log">ari.log</li><li class="floating-toc-li" id="floating-toc_ari.core">ari.core</li><li class="floating-toc-li" id="floating-toc_ari.metaparse.pybnf">ari.metaparse.pybnf</li><li class="floating-toc-li" id="floating-toc_ari.metaparse.ebnf">ari.metaparse.ebnf</li><li class="floating-toc-li" id="floating-toc_ari.parse.base">ari.parse.base</li><li class="floating-toc-li" id="floating-toc_ari.parse.parse">ari.parse.parse</li><li class="floating-toc-li" id="floating-toc_ari.translate">ari.translate</li></ul></div></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
 SyntaxHighlighter.all();
 
