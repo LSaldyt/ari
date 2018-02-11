@@ -24,11 +24,11 @@
     ; (clojure.pprint/pprint (ebnf "data/languages/ebnf.lang"))
     ; (clojure.pprint/pprint (ebnf "data/languages/pascal_like.lang"))
     ; (println "EBNF/LISP tests")
-    ; (let [lisp (ebnf "data/languages/lisp.lang")]
-    ;   ;(println lisp)
-    ;   (clojure.pprint/pprint (lisp "data/samples/simple_lisp.lisp")))
-    (let [t (ebnf "data/languages/test.lang")]
-      (clojure.pprint/pprint (t "data/samples/test.test")))
+     (let [lisp (ebnf "data/languages/lisp.lang")]
+       ;(println lisp)
+       (clojure.pprint/pprint (lisp "data/samples/simple_lisp.lisp")))
+    ; (let [t (ebnf "data/languages/test.lang")]
+    ;   (clojure.pprint/pprint (t "data/samples/test.test")))
     ;(let [[infile outfile] args]
     ;  (translate infile outfile test-parser test-separators test-tag-pairs))))
     ))
