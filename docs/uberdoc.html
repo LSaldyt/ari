@@ -2870,7 +2870,7 @@ net.brehaut.ClojureTools = (function (SH) {
 </script><title>ari -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name"><a href="github.com/LSaldyt/ari">ari</a></h1><h2 class="project-version">0.1.0</h2><br /><p>Ari is a continued investigation into computational linguistics.
 Basically, ari is a framework for doing programming language research. 
 Right now, it is a parser-generator, but eventually it will become a capable translator, based on glossa (github.com/LSaldyt/glossa)</p>
-</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.8.0</td></tr><tr><td class="dep-name">org.clojure/tools.cli</td><td class="dotted"><hr /></td><td class="dep-version">0.2.4</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#ari.lex">ari.lex</a></li><li><a href="#ari.core">ari.core</a></li><li><a href="#ari.metaparse.pybnf">ari.metaparse.pybnf</a></li><li><a href="#ari.metaparse.ebnf">ari.metaparse.ebnf</a></li><li><a href="#ari.translate">ari.translate</a></li><li><a href="#ari.parse">ari.parse</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#ari.lex" name="ari.lex"><h1 class="project-name">ari.lex</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>General lexing module. Converts a raw text file into a list of tagged words based on defined lexical rules</p>
+</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.8.0</td></tr><tr><td class="dep-name">org.clojure/tools.cli</td><td class="dotted"><hr /></td><td class="dep-version">0.2.4</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#ari.lex">ari.lex</a></li><li><a href="#ari.log">ari.log</a></li><li><a href="#ari.core">ari.core</a></li><li><a href="#ari.metaparse.pybnf">ari.metaparse.pybnf</a></li><li><a href="#ari.metaparse.ebnf">ari.metaparse.ebnf</a></li><li><a href="#ari.translate">ari.translate</a></li><li><a href="#ari.parse">ari.parse</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#ari.lex" name="ari.lex"><h1 class="project-name">ari.lex</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>General lexing module. Converts a raw text file into a list of tagged words based on defined lexical rules</p>
 </td><td class="codes"><pre class="brush: clojure">(ns ari.lex)</pre></td></tr><tr><td class="docs"><p>Check if the leading elements of two sequences match</p>
 </td><td class="codes"><pre class="brush: clojure">(defn front-match? 
   [a b]
@@ -2969,12 +2969,37 @@ Right now, it is a parser-generator, but eventually it will become a capable tra
       [token tag])))</pre></td></tr><tr><td class="docs"><p>Convert a string (file) into tagged tokens</p>
 </td><td class="codes"><pre class="brush: clojure">(defn lex 
   [separators special-separators tag-pairs content]
+  (println &quot;Lexing..&quot;)
+  ; (println separators)
+  ; (println special-separators)
+  ; (println tag-pairs)
   (let [result
         (-&gt; content
             (separate separators special-separators)
             (do-tag (create-taggers tag-pairs)))]
-    ;(clojure.pprint/pprint result)
-    result))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#ari.core" name="ari.core"><h1 class="project-name">ari.core</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Translation script / effective test</p>
+    (println &quot;Done&quot;)
+    (clojure.pprint/pprint result)
+    result))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#ari.log" name="ari.log"><h1 class="project-name">ari.log</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(ns ari.log)</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn log [log-tree message]
+  (let [head (:head log-tree)
+        head+ (concat head (list :log))
+        result (get-in log-tree head+)]
+    (println (apply str (repeat (count head) &quot;  &quot;)) message)
+    log-tree))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn log-pop [log-tree]
+  (let [head (:head log-tree)]
+    (assoc log-tree :head (drop-last 1 head))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn log-push [log-tree k]
+  (let [head (:head log-tree)
+        tree (assoc log-tree :head (concat head (list k)))]
+    tree))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn join [a b]
+  (let [head (:head a)
+        all-a (:all a)
+        all-b (:all b)]
+    {:head head
+     :all (merge-with concat all-a all-b)}))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#ari.core" name="ari.core"><h1 class="project-name">ari.core</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Translation script / effective test</p>
 </td><td class="codes"><pre class="brush: clojure">(ns ari.core
   (:require [clojure.tools.cli :refer [cli]]
             [ari.parse     :refer :all]
@@ -2992,11 +3017,16 @@ Right now, it is a parser-generator, but eventually it will become a capable tra
      :default false :flag true])]
     (when (:help opts)
       (println banner))
-    ;;(clojure.pprint/pprint (pybnf &quot;data/languages/simple.lang&quot; &quot;data/test_simple.simp&quot;))
-    (clojure.pprint/pprint (ebnf &quot;data/languages/ebnf_test.lang&quot;))
-    (clojure.pprint/pprint (ebnf &quot;data/languages/ebnf.lang&quot;))
-    (clojure.pprint/pprint (ebnf &quot;data/languages/pascal_like.lang&quot;))
-    (clojure.pprint/pprint (ebnf &quot;data/languages/lisp.lang&quot;))))</pre></td></tr><tr><td class="docs"><p>(let [[infile outfile] args]
+    ; (println (pybnf &quot;data/languages/simple.lang&quot; &quot;data/samples/test.simp&quot;))
+    ;(clojure.pprint/pprint (ebnf &quot;data/languages/ebnf.lang&quot;))
+    ;(clojure.pprint/pprint (ebnf &quot;data/languages/pascal_like.lang&quot;))
+    ;(println &quot;EBNF/LISP tests&quot;)
+    ;(let [lisp (ebnf &quot;data/languages/lisp.lang&quot;)]
+    ;  ;(println lisp)
+    ;  (clojure.pprint/pprint (lisp &quot;data/samples/simple_lisp.lisp&quot;)))
+    (println &quot;Test&quot;)
+    (let [t (ebnf &quot;data/languages/test.lang&quot;)]
+      (clojure.pprint/pprint (t &quot;data/samples/test.test&quot;)))))</pre></td></tr><tr><td class="docs"><p>(let [[infile outfile] args]
  (translate infile outfile test-parser test-separators test-tag-pairs))))</p>
 </td><td class="codes"></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#ari.metaparse.pybnf" name="ari.metaparse.pybnf"><h1 class="project-name">ari.metaparse.pybnf</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns ari.metaparse.pybnf
@@ -3006,12 +3036,8 @@ Right now, it is a parser-generator, but eventually it will become a capable tra
 </td><td class="codes"><pre class="brush: clojure">(def separators [&quot;:&quot; &quot; &quot; &quot;(&quot; &quot;)&quot; &quot;{&quot; &quot;}&quot; &quot;'&quot; &quot;|&quot; &quot;\n&quot; &quot;.&quot; &quot;!&quot; &quot;`&quot; &quot;@&quot; &quot;,&quot; &quot;=&quot;])</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(declare parser-part)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def whitespace (discard (many (from [(token &quot; &quot;) (token &quot;\n&quot;)]))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defparser direct-token (conseq-merge
-                          [(token &quot;'&quot;) 
-                           (tag &quot;name&quot; :token) 
-                           (optional (tag &quot;space&quot;))
-                           (optional (tag &quot;name&quot; :tag)) 
-                           (token &quot;'&quot;)]))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defparser identifier (tag &quot;name&quot; :identifier))
+(defparser direct-token (tag :string :token))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defparser or-operator (conseq-merge 
                          [(token &quot;(&quot;)
                           (sep-by1
@@ -3031,9 +3057,11 @@ Right now, it is a parser-generator, but eventually it will become a capable tra
                            parser-part
                            (token &quot;`&quot;)]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def parser-part (from [or-operator
-                          many-operator
-                          key-operator
-                          direct-token]))</pre></td></tr><tr><td class="docs">
+                        many-operator
+                        key-operator
+                        direct-token
+                        identifier
+                        ]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defparser syntax-element (conseq-merge [(tag &quot;name&quot; :name) 
                               (token &quot;:&quot;) 
                               parser-part 
@@ -3072,13 +3100,22 @@ Right now, it is a parser-generator, but eventually it will become a capable tra
 </td><td class="codes"><pre class="brush: clojure">(defn outer-create-syntax-element [tree]
   (let [{ident :name :as all} (:syntax-element tree)
         inner (dissoc all :name)]
-    (create-syntax-element inner)))</pre></td></tr><tr><td class="docs">
+    (println )
+    (println &quot;Creating syntax element parser from: &quot;)
+    (clojure.pprint/pprint inner)
+    (let [result 
+          (create-syntax-element inner)]
+      (println result)
+      result)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn process-bnf-file [tree]
   {:taggers (map #(list (first (:regex %)) (first (:tag %))) 
                  (:values (:tagger-def (:bnf-file tree))))
    :separators (map #(first (:sep %)) 
                     (:values (:separator-def (:bnf-file tree))))
    :parsers (map outer-create-syntax-element (:values (:bnf-file tree)))})</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn add-to-bnf-file [tree]
+  (let [separators (:separators tree)]
+    (assoc tree :separators (concat separators (list &quot;\n&quot;)))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def tag-pairs [[#&quot;[_a-zA-Z][_a-zA-Z0-9]{0,30}&quot; &quot;name&quot;]
                 [#&quot;'&quot; &quot;quote&quot;]
                 [#&quot;\n&quot; &quot;newline&quot;]
@@ -3087,28 +3124,29 @@ Right now, it is a parser-generator, but eventually it will become a capable tra
                 [#&quot;:&quot; &quot;colon&quot;]])</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def special-separators [[&quot;\ &quot;\ :string] [&quot;'&quot; &quot;'&quot; :string] [&quot;#&quot; &quot;\n&quot; :comment]])</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn create-metaparser [bnf-file-tree-clean]
-  (clojure.pprint/pprint (:taggers bnf-file-tree-clean))
   (fn [filename] (read-source filename
                               (many (from (:parsers bnf-file-tree-clean)))
                               (:separators bnf-file-tree-clean)
-                              (map #(list (re-pattern (first %)) (second %)) (:taggers bnf-file-tree-clean)))))</pre></td></tr><tr><td class="docs">
+                              special-separators
+                              (map 
+                                #(list (re-pattern (first %)) (second %)) 
+                                (:taggers bnf-file-tree-clean)))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn pybnf [filename testfile]
-  (let [[tree remaining] 
+  (let [[tree remaining log] 
         (read-source filename 
                      bnf-file 
                      separators 
                      special-separators
                      tag-pairs)]
-    ;(clojure.pprint/pprint tree)
-  (let [clean-tree (process-bnf-file tree)]
-    ;(clojure.pprint/pprint clean-tree)
+  (let [clean-tree (add-to-bnf-file (process-bnf-file tree))]
+    (clojure.pprint/pprint clean-tree)
     ((create-metaparser clean-tree) testfile))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#ari.metaparse.ebnf" name="ari.metaparse.ebnf"><h1 class="project-name">ari.metaparse.ebnf</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns ari.metaparse.ebnf 
   (:require [ari.lex :refer [lex]]
             [ari.parse :refer :all]
             [ari.translate :refer [read-source]]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def separators [&quot;:&quot; &quot; &quot; &quot;(&quot; &quot;)&quot; &quot;{&quot; &quot;}&quot; &quot;'&quot; &quot;|&quot; &quot;\n&quot; &quot;.&quot; &quot;!&quot; &quot;`&quot; &quot;@&quot; &quot;,&quot; &quot;=&quot; &quot;\])
-(def tag-pairs [[#&quot;[_a-zA-Z][_a-zA-Z0-9]{0,30}&quot; &quot;name&quot;]
+</td><td class="codes"><pre class="brush: clojure">(def separators [&quot;:&quot; &quot; &quot; &quot;(&quot; &quot;)&quot; &quot;{&quot; &quot;}&quot; &quot;'&quot; &quot;|&quot; &quot;\n&quot; &quot;.&quot; &quot;!&quot; &quot;`&quot; &quot;@&quot; &quot;,&quot; &quot;=&quot; &quot;\ &quot;;&quot;])
+(def tag-pairs [[#&quot;^([A-Za-z]|[0-9]|_)+$&quot; &quot;name&quot;]
                 [#&quot;'&quot; &quot;quote&quot;]
                 [#&quot;\ &quot;quote&quot;]
                 [#&quot;=&quot; &quot;operator&quot;]
@@ -3120,6 +3158,7 @@ Right now, it is a parser-generator, but eventually it will become a capable tra
 </td><td class="codes"><pre class="brush: clojure">(defn white [parser]
   (discard (conseq-merge [whitespace parser whitespace])))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defparser terminal (tag :string :string))
+(defparser special (tag &quot;special&quot; :special))
 (defparser identifier (tag &quot;name&quot; :name))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(declare alternation)
 (declare concatenation)
@@ -3165,28 +3204,107 @@ Right now, it is a parser-generator, but eventually it will become a capable tra
                alternation
                concatenation
                terminal
+               special
                identifier])</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def special-separators [[&quot;\ &quot;\ :string] [&quot;'&quot; &quot;'&quot; :string] [&quot;(*&quot; &quot;*)&quot; :comment]])</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(declare process-ebnf-element)</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn break-tree [single-tree]
+  (let [k (first (keys single-tree))]
+    [k (k single-tree)]))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn process-concatenation [element ptree]
+  (let [values (map :con-element (:values element))]
+    (let [elements (map #(process-ebnf-element % ptree) values)]
+      (conseq-merge elements))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn process-alternation [element ptree]
+  (let [values (map :alt-element (:values element))]
+    (from (map #(process-ebnf-element % ptree) values))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn process-repetition [element ptree]
+  (many (process-ebnf-element (:element element) ptree)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn process-terminal [element ptree]
+  (let [item (first (:string element))]
+    (token item)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn process-ref [element ptree]
+  (let [k (first (:name (:identifier element)))]
+    (retrieve k ptree)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn process-ebnf-element [element ptree]
+  (let [[k tree] (break-tree element)]
+    (cond (= k :alternation)
+          (process-alternation tree ptree)
+          (= k :concatenation)
+          (process-concatenation tree ptree)
+          (= k :repetition)
+          (process-repetition tree ptree)
+          (= k :terminal)
+          (process-terminal tree ptree)
+          (= k :identifier)
+          (process-ref element ptree)
+          :else
+          element)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn get-identifier [definition]
+  (first (:name (:identifier definition))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn process-ebnf-tree [tree]
+  (let [values (:values tree)]
+    (def parser-tree (atom {}))
+    (let [new-tree (into {} 
+            (for [definition values]
+              (let [definition (:definition definition)]
+                [(get-identifier definition) 
+                 (process-ebnf-element (:element definition) parser-tree)])))]
+      (reset! parser-tree new-tree))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def special-separators [[&quot;\ &quot;\ :string] [&quot;'&quot; &quot;'&quot; :string] [&quot;#&quot; &quot;\n&quot; :comment]])</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def tag-pairs [[#&quot;NEWLINE&quot; &quot;special&quot;]
+                [#&quot;[_a-zA-Z][_a-zA-Z0-9]{0,30}&quot; &quot;name&quot;]
+                [#&quot;'&quot; &quot;quote&quot;]
+                [#&quot;\n&quot; &quot;newline&quot;]
+                [#&quot; &quot; &quot;space&quot;]
+                [#&quot;\\|&quot; &quot;operator&quot;]
+                [#&quot;:&quot; &quot;colon&quot;]])</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn create-ebnf-metaparser [tree]
+  (fn [filename] (read-source filename
+                              (get tree &quot;list&quot;)
+                              [&quot; &quot; &quot;(&quot; &quot;)&quot; &quot;\n&quot;]
+                              special-separators
+                              tag-pairs)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn ebnf [filename]
-  (let [[tree remaining] 
+  (let [[tree remaining log] 
         (read-source filename 
                      (many definition)
                      separators 
                      special-separators
                      tag-pairs)]
-    [tree remaining]))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#ari.translate" name="ari.translate"><h1 class="project-name">ari.translate</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+    (println &quot;EBNF Log:&quot;)
+    (clojure.pprint/pprint log)
+    (println &quot;Tree:&quot;)
+    (clojure.pprint/pprint tree)
+    (println &quot;Remaining:&quot;)
+    (clojure.pprint/pprint remaining)
+    (let [clean-tree (process-ebnf-tree tree)]
+      (println &quot;Result:&quot;)
+      (clojure.pprint/pprint clean-tree)
+      (create-ebnf-metaparser clean-tree))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#ari.translate" name="ari.translate"><h1 class="project-name">ari.translate</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns ari.translate
   (:require [ari.parse :refer [parse]]
             [ari.lex :refer [lex]]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn read-source [infile parser separators special-separators tag-pairs]
+  (println &quot;Reading source&quot;)
+  (println infile)
+  (println parser)
+  (println separators)
+  (println special-separators)
+  (println tag-pairs)
   (-&gt;&gt; (slurp infile)
        (lex separators special-separators tag-pairs)
        (parse parser)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn translate [infile outfile parser separators special-separators tag-pairs]
   (let [result (read-source infile parser separators special-separators tag-pairs)]
-    ;(dorun (map #(println (str &quot;\ % &quot;\)) result))
     (spit outfile result)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#ari.parse" name="ari.parse"><h1 class="project-name">ari.parse</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(ns ari.parse)</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(ns ari.parse
+  (:require [ari.log :as log]))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn use-parser [parser tokens log]
+  (let [log (log/log-push log &quot;test&quot;)
+        [tree remaining in-log] (parser tokens log)
+        in-log (log/log-pop in-log)]
+    [tree remaining in-log]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def any &quot;*any*&quot;)</pre></td></tr><tr><td class="docs"><p>((just any 'int') [2 'int']) -> [token tag]</p>
 </td><td class="codes"><pre class="brush: clojure">(defn- token-matcher 
   ([etoken etag]
@@ -3198,21 +3316,23 @@ Right now, it is a parser-generator, but eventually it will become a capable tra
             (or (= etag tag)     (= etag any)))
         [token tag k]
         nil))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn- token-matcher-wrapper [parser]
-  (fn [tokens] 
+</td><td class="codes"><pre class="brush: clojure">(defn- token-matcher-wrapper [parser etoken etag]
+  (fn [tokens log] 
     (let [result (parser (first tokens))]
       (if result
         (let [[token tag k] result]
-          [(if (nil? k)
-             nil
+          [(if (nil? k) ; Presence of k determines if value is kept
+             {}
              {k [token tag]})
-           (rest tokens)])
-        nil))))</pre></td></tr><tr><td class="docs">
+           (rest tokens)
+           (log/log log (str &quot;Success: &lt;&quot; etoken &quot;&gt;, &lt;&quot; etag &quot;&gt;&quot;))])
+        [nil tokens (log/log log (str &quot;Failed: &lt;&quot; etoken &quot;&gt;, &lt;&quot; etag &quot;&gt;&quot;
+                                      &quot; (against: &quot; (first tokens) &quot;)&quot;))]))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn just 
   ([etoken etag]
    (just etoken etag nil))
   ([etoken etag k]
-   (token-matcher-wrapper (token-matcher etoken etag k))))</pre></td></tr><tr><td class="docs">
+   (token-matcher-wrapper (token-matcher etoken etag k) etoken etag)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn tag
   ([etag]
     (just any etag))
@@ -3227,45 +3347,60 @@ Right now, it is a parser-generator, but eventually it will become a capable tra
   ([] (just any any))
   ([k] (just any any k)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn conseq [given-parsers]
-  (fn [tokens] (loop [parsers   given-parsers
+  (fn [tokens log] (loop 
+                     [parsers   given-parsers
                       remaining tokens
-                      tree  '()]
+                      tree  '()
+                      loop-log (log/log log &quot;Began conseq&quot;)]
                  (if (empty? parsers)
-                   [{:sequence tree} remaining]
-                   (let [result ((first parsers) remaining)]
-                     (if (not result)
-                       nil
-                       (let [[in-tree in-remaining] result]
-                         (recur (rest parsers)
-                                in-remaining
-                                (if (nil? in-tree)
-                                  tree
-                                  (concat tree (list in-tree)))))))))))</pre></td></tr><tr><td class="docs">
+                   [{:sequence tree} remaining (log/log loop-log (str &quot;Conseq success&quot;))]
+                 (let [[in-tree in-remaining in-log] 
+                       (use-parser (first parsers) remaining loop-log)
+                       in-log (log/log in-log (str &quot;Next: &quot;(first in-remaining)))]
+                   (if (nil? in-tree)
+                     [nil in-remaining (log/log in-log &quot;Stopped conseq&quot;)]
+                     (recur (rest parsers)
+                            in-remaining
+                            (if (nil? in-tree)
+                              tree
+                              (concat tree (remove empty? (list in-tree))))
+                            in-log)))))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn many [given-parser]
-  (fn [tokens] (loop [remaining tokens
-                      values  '()]
+  (fn [tokens log] (loop 
+                     [remaining tokens
+                      values  '()
+                      loop-log (log/log log &quot;Began Many&quot;)]
                  (if (empty? remaining)
-                   [{:values values} remaining]
-                   (let [result (given-parser remaining)]
-                     (if (not result)
-                       [{:values values} remaining]
-                       (let [[in-values in-remaining] result]
-                         (recur in-remaining
-                                (concat values (list in-values))))))))))</pre></td></tr><tr><td class="docs">
+                   [{:values values} 
+                    remaining 
+                    (log/log loop-log (str &quot;Many success (no more tokens)&quot;))]
+                   (let [[in-values in-remaining in-log] 
+                         (use-parser given-parser remaining loop-log)]
+                     (if (nil? in-values)
+                       [{:values values} remaining (log/log in-log &quot;Many success&quot;)]
+                       (recur in-remaining
+                              (concat values (list in-values))
+                              in-log)))))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn many1 [given-parser]
-  (fn [tokens]
-    (let [[tree remaining] ((many given-parser) tokens)]
+  (fn [tokens log]
+    (let [log (log/log log &quot;Began many1&quot;)
+          [tree remaining in-log] (use-parser (many given-parser) tokens log)]
       (if (empty? (:values tree))
-        nil
-        [tree remaining]))))</pre></td></tr><tr><td class="docs">
+        [nil remaining (log/log in-log &quot;Many1 failure&quot;)]
+        [tree remaining (log/log in-log (str &quot;Many1 success&quot;))]))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn from [parsers]
-  (fn [tokens] (loop [remaining-parsers parsers]
+  (fn [tokens log] 
+    (let [log (log/log log &quot;Began from&quot;)]
+      (loop [remaining-parsers parsers]
                  (if (empty? remaining-parsers)
-                   nil
-                   (let [result ((first remaining-parsers) tokens)]
-                     (if (not (nil? result))
-                       result
-                       (recur (rest remaining-parsers))))))))</pre></td></tr><tr><td class="docs">
+                   [nil tokens (log/log log &quot;From failure&quot;)]
+                   (let [[tree remaining in-log] 
+                         (use-parser (first remaining-parsers) tokens log)]
+                     (if (not (nil? tree))
+                       [tree 
+                        remaining 
+                        (log/log in-log &quot;From success&quot;)]
+                       (recur (rest remaining-parsers)))))))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn- demunge-fn
   [fn-object]
   (let [dem-fn (str fn-object)
@@ -3279,61 +3414,77 @@ Right now, it is a parser-generator, but eventually it will become a capable tra
             (fn [x] 
               (some #(= (fn-name x) (fn-name %)) out-parsers)) parsers)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn optional [parser]
-  (fn [tokens] 
-    (let [result (parser tokens)]
-      (if result
-        result
-        [{} tokens]))))</pre></td></tr><tr><td class="docs">
+  (fn [tokens log] 
+    (let [log (log/log log &quot;Begin Optional&quot;)
+          [tree remaining in-log] (use-parser parser tokens log)]
+      (println &quot;Optional result: &quot; tree)
+      [(if (nil? tree) {} tree)
+       remaining
+       (log/log in-log (str &quot;Ran optional (&quot; 
+                            (if (nil? tree) &quot;unsucessfully&quot; &quot;successfully&quot;) &quot;)&quot;))])))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn discard [parser]
-  (fn [tokens]
-    (let [result (parser tokens)]
-      (if result
-        (let [[tree remaining] result]
-          [nil remaining])
-        nil))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn- unsequence [[tree remaining]] 
-  [(apply merge (:sequence tree)) remaining])</pre></td></tr><tr><td class="docs">
+  (fn [tokens log]
+    (let [log (log/log log &quot;Began Discard&quot;)
+          [tree remaining in-log] (use-parser parser tokens log)]
+      (println &quot;Discard result: &quot; tree)
+      (if (nil? tree)
+        [nil remaining (log/log in-log &quot;Discard failure&quot;)]
+        [{} remaining (log/log in-log &quot;Discard success&quot;)]))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn- unsequence [[tree remaining log]] 
+  [(apply merge (:sequence tree)) remaining log])</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn conseq-merge [given-parsers]
-  (fn [tokens]
-    (unsequence ((conseq given-parsers) tokens))))</pre></td></tr><tr><td class="docs">
+  (fn [tokens log]
+    (unsequence ((conseq given-parsers) tokens log))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn- extract-sequences [tree]
+  (println &quot;Extracting: &quot; tree)
+  (println &quot;Extracted: &quot; (map #(first (:sequence %)) (:values tree)))
   (map #(first (:sequence %)) (:values tree)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn- create-sep-by [one]
   (fn [item-parser sep-parser]
-    (fn [tokens]
-      (let [result (item-parser tokens)]
-        (if (nil? result)
+    (fn [tokens log]
+      (let [[tree remaining log1] (use-parser item-parser tokens log)]
+        (if (nil? tree)
           (if one
-            nil
-            [{} tokens])
-          (let [[tree remaining] result]
-            (let [in-result 
-                  (((if one many1 many) (conseq [sep-parser item-parser])) 
-                   remaining)]
-              (if (nil? in-result)
-                (if one
-                  nil
-                  [tree remaining])
-                (let [[in-tree in-remaining] in-result]
-                  [{:values (concat (list tree) 
-                                    (extract-sequences in-tree))} 
-                   in-remaining])))))))))</pre></td></tr><tr><td class="docs">
+            [nil remaining log1]
+            [{} remaining log1])
+          (let [[in-tree in-remaining in-log]
+                (((if one many1 many) (conseq [sep-parser item-parser])) 
+                 remaining 
+                 log1)]
+            (if (nil? in-tree)
+              (if one
+                [nil in-remaining in-log]
+                [tree in-remaining in-log])
+              [{:values (concat (list tree) 
+                                (extract-sequences in-tree))} 
+               in-remaining
+               in-log])))))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def sep-by  (create-sep-by false))
 (def sep-by1 (create-sep-by true))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn create-ref-parser [dict k]
+  (fn [tokens log] ((k dict) tokens log)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmacro create-parser [ident parser]
-  `(fn [tokens#]
-     (let [[tree# remaining#] (~parser tokens#)]
+  `(fn [tokens# log#]
+     (let [[tree# remaining# inlog#] (use-parser ~parser tokens# log#)]
        (if (nil? tree#)
-         nil
-         [{(keyword '~ident) tree#} remaining#]))))</pre></td></tr><tr><td class="docs">
+         [nil remaining# inlog#]
+         [{(keyword '~ident) tree#} remaining# inlog#]))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmacro defparser [ident parser]
-  `(defn ~ident [tokens#]
-     (let [[tree# remaining#] (~parser tokens#)]
+  `(defn ~ident [tokens# log#]
+     (let [[tree# remaining# inlog#] (use-parser ~parser tokens# log#)]
        (if (nil? tree#)
-         nil
-         [{(keyword '~ident) tree#} remaining#]))))</pre></td></tr><tr><td class="docs">
+         [nil remaining# inlog#]
+         [{(keyword '~ident) tree#} remaining# inlog#]))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn retrieve [k ptree-atom]
+  ;(println &quot;Invoked retrieve&quot;)
+  ;(clojure.pprint/pprint @ptree-atom)
+  (fn [tokens log] 
+    (let [log (log/log log &quot;Begin retrieve&quot;)
+          result ((get @ptree-atom k) tokens log)]
+      result)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn parse [parser content]
-  (parser content))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/gdeer81/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a><div id="floating-toc"><ul><li class="floating-toc-li" id="floating-toc_ari.lex">ari.lex</li><li class="floating-toc-li" id="floating-toc_ari.core">ari.core</li><li class="floating-toc-li" id="floating-toc_ari.metaparse.pybnf">ari.metaparse.pybnf</li><li class="floating-toc-li" id="floating-toc_ari.metaparse.ebnf">ari.metaparse.ebnf</li><li class="floating-toc-li" id="floating-toc_ari.translate">ari.translate</li><li class="floating-toc-li" id="floating-toc_ari.parse">ari.parse</li></ul></div></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
+  (println &quot;Parsing &quot; parser)
+  (parser content {:head [:all]}))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/gdeer81/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a><div id="floating-toc"><ul><li class="floating-toc-li" id="floating-toc_ari.lex">ari.lex</li><li class="floating-toc-li" id="floating-toc_ari.log">ari.log</li><li class="floating-toc-li" id="floating-toc_ari.core">ari.core</li><li class="floating-toc-li" id="floating-toc_ari.metaparse.pybnf">ari.metaparse.pybnf</li><li class="floating-toc-li" id="floating-toc_ari.metaparse.ebnf">ari.metaparse.ebnf</li><li class="floating-toc-li" id="floating-toc_ari.translate">ari.translate</li><li class="floating-toc-li" id="floating-toc_ari.parse">ari.parse</li></ul></div></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
 SyntaxHighlighter.all();
 
 // hackity hack

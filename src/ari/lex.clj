@@ -117,9 +117,14 @@
 (defn lex 
   "Convert a string (file) into tagged tokens"
   [separators special-separators tag-pairs content]
+  (println "Lexing..")
+  ; (println separators)
+  ; (println special-separators)
+  ; (println tag-pairs)
   (let [result
         (-> content
             (separate separators special-separators)
             (do-tag (create-taggers tag-pairs)))]
-    ;(clojure.pprint/pprint result)
+    (println "Done")
+    (clojure.pprint/pprint result)
     result))

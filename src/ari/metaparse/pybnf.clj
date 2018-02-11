@@ -23,12 +23,8 @@
 
 (def whitespace (discard (many (from [(token " ") (token "\n")]))))
 
-(defparser direct-token (conseq-merge
-                          [(token "'") 
-                           (tag "name" :token) 
-                           (optional (tag "space"))
-                           (optional (tag "name" :tag)) 
-                           (token "'")]))
+(defparser identifier (tag "name" :identifier))
+(defparser direct-token (tag :string :token))
 
 (defparser or-operator (conseq-merge 
                          [(token "(")
@@ -52,9 +48,11 @@
                            (token "`")]))
 
 (def parser-part (from [or-operator
-                          many-operator
-                          key-operator
-                          direct-token]))
+                        many-operator
+                        key-operator
+                        direct-token
+                        identifier
+                        ]))
 
 (defparser syntax-element (conseq-merge [(tag "name" :name) 
                               (token ":") 
@@ -84,13 +82,29 @@
                        tagger-def
                        (many syntax-element)]))
 
+(defn replace-special [item]
+  (cond (= item "NEWLINE")
+        "\n"
+        (= item "SPACE")
+        " "
+        (= item "TAB")
+        "\t"
+        :else
+        item))
+
+(defn create-direct-token [tree]
+  (println "Direct Token:")
+  (clojure.pprint/pprint tree)
+  (just (replace-special (first (get tree :token [any])))
+        (replace-special (first (get tree :tag [any])))))
+
 (defn create-syntax-element [tree]
   (let [inner-ident (first (keys tree))
         inner-tree (inner-ident tree)]
     (cond (= inner-ident :or-operator)
           (from (map create-syntax-element (:values inner-tree)))
           (= inner-ident :direct-token)
-          (just (first (get inner-tree :token [any])) (first (get inner-tree :tag [any])))
+          (create-direct-token inner-tree)
           (= inner-ident :key-operator)
           (create-parser (symbol (first (:key inner-tree))) (create-syntax-element (dissoc inner-tree :key)))
           (= inner-ident :many-operator)
@@ -99,7 +113,13 @@
 (defn outer-create-syntax-element [tree]
   (let [{ident :name :as all} (:syntax-element tree)
         inner (dissoc all :name)]
-    (create-syntax-element inner)))
+    (println "")
+    (println "Creating syntax element parser from: ")
+    (clojure.pprint/pprint inner)
+    (let [result 
+          (create-syntax-element inner)]
+      (println result)
+      result)))
 
 
 (defn process-bnf-file [tree]
@@ -108,6 +128,10 @@
    :separators (map #(first (:sep %)) 
                     (:values (:separator-def (:bnf-file tree))))
    :parsers (map outer-create-syntax-element (:values (:bnf-file tree)))})
+
+(defn add-to-bnf-file [tree]
+  (let [separators (:separators tree)]
+    (assoc tree :separators (concat separators (list "\n")))))
 
 (def tag-pairs [[#"[_a-zA-Z][_a-zA-Z0-9]{0,30}" "name"]
                 [#"'" "quote"]
@@ -119,21 +143,21 @@
 (def special-separators [["\"" "\"" :string] ["'" "'" :string] ["#" "\n" :comment]])
 
 (defn create-metaparser [bnf-file-tree-clean]
-  (clojure.pprint/pprint (:taggers bnf-file-tree-clean))
   (fn [filename] (read-source filename
                               (many (from (:parsers bnf-file-tree-clean)))
                               (:separators bnf-file-tree-clean)
                               special-separators
-                              (map #(list (re-pattern (first %)) (second %)) (:taggers bnf-file-tree-clean)))))
+                              (map 
+                                #(list (re-pattern (first %)) (second %)) 
+                                (:taggers bnf-file-tree-clean)))))
 
 (defn pybnf [filename testfile]
-  (let [[tree remaining] 
+  (let [[tree remaining log] 
         (read-source filename 
                      bnf-file 
                      separators 
                      special-separators
                      tag-pairs)]
-    ;(clojure.pprint/pprint tree)
-  (let [clean-tree (process-bnf-file tree)]
-    ;(clojure.pprint/pprint clean-tree)
+  (let [clean-tree (add-to-bnf-file (process-bnf-file tree))]
+    (clojure.pprint/pprint clean-tree)
     ((create-metaparser clean-tree) testfile))))

@@ -31,9 +31,10 @@
 (def whitespace (optional (discard (many (from [(tag "space") (tag "newline")])))))
 
 (defn white [parser]
-  (discard (conseq-merge [whitespace parser whitespace])))
+  (conseq-merge [whitespace parser whitespace]))
 
 (defparser terminal (tag :string :string))
+(defparser special (tag "special" :special))
 (defparser identifier (tag "name" :name))
 
 (declare alternation)
@@ -82,25 +83,34 @@
 
 (defparser con-element (any-except elements concatenation alternation))
 
-(defparser concatenation (sep-by1 con-element (white (token ","))))
+(defparser catered (conseq-merge
+                     [(tag "space")
+                      (token "list")
+                      (token ",")
+                      (tag "space")
+                      (tag :string)
+                      ]))
+
+(defparser concatenation 
+  (fn [tokens log]
+    (println "HERE")
+    (let [result ((sep-by1 con-element (white (token ","))) tokens log)]
+    ;(let [result ((conseq-merge [identifier (white (token ",")) terminal]) tokens log)]
+      (println "DONE")
+      result)))
 
 ; So that elements is a list of legit, defined functions
-(def elements [grouping
+(def elements [;catered
+               concatenation
+               grouping
                repetition
                optional-form
                alternation
-               concatenation
+               special
                terminal
                identifier])
 
 (def special-separators [["\"" "\"" :string] ["'" "'" :string] ["(*" "*)" :comment]])
-
-;(declare alternation)
-;(declare concatenation)
-;(declare grouping)
-;(declare repetition)
-;(declare optional-form)
-;(declare elements)
 
 (declare process-ebnf-element)
 
@@ -111,8 +121,6 @@
 (defn process-concatenation [element ptree]
   (let [values (map :con-element (:values element))]
     (let [elements (map #(process-ebnf-element % ptree) values)]
-      ;(println "Elements")
-      ;(clojure.pprint/pprint elements)
       (conseq-merge elements))))
 
 (defn process-alternation [element ptree]
@@ -123,11 +131,26 @@
   (many (process-ebnf-element (:element element) ptree)))
 
 (defn process-terminal [element ptree]
-  (token (first (:string (:terminal element)))))
+  (let [item (first (:string element))]
+      (token item)))
+
+(defn process-special [element ptree]
+  (println element)
+  (/ 1 0))
+
+(defn replace-special [item]
+  (cond (= item "NEWLINE")
+        "\n"
+        (= item "SPACE")
+        " "
+        (= item "TAB")
+        "\t"
+        :else
+        item))
 
 (defn process-ref [element ptree]
   (let [k (first (:name (:identifier element)))]
-    (fn [tokens] ((get @ptree k) tokens))))
+    (retrieve k ptree)))
 
 (defn process-ebnf-element [element ptree]
   (let [[k tree] (break-tree element)]
@@ -139,13 +162,12 @@
           (process-repetition tree ptree)
           (= k :terminal)
           (process-terminal tree ptree)
+          (= k :special)
+          (process-special tree ptree)
           (= k :identifier)
           (process-ref element ptree)
           :else
-          (do
-            (println "Non-matching element:")
-            (println element)
-            element))))
+          element)))
 
 (defn get-identifier [definition]
   (first (:name (:identifier definition))))
@@ -162,21 +184,35 @@
 
 (def special-separators [["\"" "\"" :string] ["'" "'" :string] ["#" "\n" :comment]])
 
+(def tag-pairs [[#"NEWLINE" "special"]
+                [#"[_a-zA-Z][_a-zA-Z0-9]{0,30}" "name"]
+                [#"'" "quote"]
+                [#"\n" "newline"]
+                [#" " "space"]
+                [#"\\|" "operator"]
+                [#":" "colon"]])
+
 (defn create-ebnf-metaparser [tree]
   (fn [filename] (read-source filename
-                              (get tree "body")
+                              (get tree "list")
                               [" " "(" ")" "\n"]
                               special-separators
-                              [])))
+                              tag-pairs)))
 
 (defn ebnf [filename]
-  (let [[tree remaining] 
+  (let [[tree remaining log] 
         (read-source filename 
                      (many definition)
                      separators 
                      special-separators
                      tag-pairs)]
+    (println "EBNF Log:")
+    (clojure.pprint/pprint log)
+    (println "Tree:")
+    (clojure.pprint/pprint tree)
+    (println "Remaining:")
+    (clojure.pprint/pprint remaining)
     (let [clean-tree (process-ebnf-tree tree)]
+      (println "Result:")
       (clojure.pprint/pprint clean-tree)
-      (println (get clean-tree "body"))
       (create-ebnf-metaparser clean-tree))))
