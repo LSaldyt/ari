@@ -1,6 +1,7 @@
 (ns ari.metaparse.pybnf
   (:require [ari.lex :refer [lex]]
-            [ari.parse :refer :all]
+            [ari.parse.parse :refer :all]
+            [ari.parse.base :refer :all]
             [ari.translate :refer [read-source]]))
 
 ; Simple pyBNF parser-generator form for testing:
@@ -20,8 +21,6 @@
 (def separators [":" " " "(" ")" "{" "}" "'" "|" "\n" "." "!" "`" "@" "," "="])
 
 (declare parser-part)
-
-(def whitespace (discard (many (from [(token " ") (token "\n")]))))
 
 (defparser identifier (tag "name" :identifier))
 (defparser direct-token (tag :string :token))
@@ -62,7 +61,7 @@
 (defparser separator-def (conseq-merge
                            [(token "__separators__")
                             (token "=")
-                            (sep-by (token any :sep) (token ","))
+                            (sep-by (tag :string :sep) (token ","))
                             (tag "newline")]))
 
 (defparser tagger-def (conseq-merge
@@ -70,9 +69,9 @@
                          (token "=")
                          (token "{")
                          (sep-by (conseq-merge 
-                                  [(token any :regex) 
+                                  [(tag :string :regex) 
                                    (token ":")
-                                   (token any :tag)])
+                                   (tag :string :tag)])
                                  (token ","))
                          (token "}")
                          (tag "newline")]))
@@ -93,8 +92,6 @@
         item))
 
 (defn create-direct-token [tree]
-  (println "Direct Token:")
-  (clojure.pprint/pprint tree)
   (just (replace-special (first (get tree :token [any])))
         (replace-special (first (get tree :tag [any])))))
 
@@ -113,12 +110,8 @@
 (defn outer-create-syntax-element [tree]
   (let [{ident :name :as all} (:syntax-element tree)
         inner (dissoc all :name)]
-    (println "")
-    (println "Creating syntax element parser from: ")
-    (clojure.pprint/pprint inner)
     (let [result 
           (create-syntax-element inner)]
-      (println result)
       result)))
 
 
@@ -149,7 +142,9 @@
                               special-separators
                               (map 
                                 #(list (re-pattern (first %)) (second %)) 
-                                (:taggers bnf-file-tree-clean)))))
+                                (:taggers bnf-file-tree-clean))
+                              {:head [:all]}
+                              )))
 
 (defn pybnf [filename testfile]
   (let [[tree remaining log] 
@@ -157,7 +152,7 @@
                      bnf-file 
                      separators 
                      special-separators
-                     tag-pairs)]
+                     tag-pairs
+                     {:head [:all]})]
   (let [clean-tree (add-to-bnf-file (process-bnf-file tree))]
-    (clojure.pprint/pprint clean-tree)
     ((create-metaparser clean-tree) testfile))))

@@ -1,6 +1,7 @@
 (ns ari.metaparse.ebnf 
   (:require [ari.lex :refer [lex]]
-            [ari.parse :refer :all]
+            [ari.parse.parse :refer :all]
+            [ari.parse.base :refer :all]
             [ari.translate :refer [read-source]]))
 
 ; ISO/IEC 14977 standard for EBNF
@@ -28,14 +29,9 @@
                 [#"\\|" "operator"]
                 [#":" "colon"]])
 
-(def whitespace (optional (discard (many (from [(tag "space") (tag "newline")])))))
-
-(defn white [parser]
-  (conseq-merge [whitespace parser whitespace]))
-
-(defparser terminal (tag :string :string))
-(defparser special (tag "special" :special))
-(defparser identifier (tag "name" :name))
+(def terminal   (tag :string   :terminal))
+(def special    (tag "special" :special))
+(def identifier (tag "name"    :identifier))
 
 (declare alternation)
 (declare concatenation)
@@ -56,7 +52,7 @@
                          (token ";")
                          whitespace]))
 
-(defparser alt-element (any-except elements alternation))
+(defparser alt-element (from-except elements alternation))
 
 (defparser alternation (sep-by1 alt-element (white (token "|"))))
 
@@ -81,27 +77,12 @@
                        whitespace
                        (token ")") ]))
 
-(defparser con-element (any-except elements concatenation alternation))
+(defparser con-element (from-except elements concatenation alternation))
 
-(defparser catered (conseq-merge
-                     [(tag "space")
-                      (token "list")
-                      (token ",")
-                      (tag "space")
-                      (tag :string)
-                      ]))
-
-(defparser concatenation 
-  (fn [tokens log]
-    (println "HERE")
-    (let [result ((sep-by1 con-element (white (token ","))) tokens log)]
-    ;(let [result ((conseq-merge [identifier (white (token ",")) terminal]) tokens log)]
-      (println "DONE")
-      result)))
+(defparser concatenation (sep-by1 con-element (white (token ","))))
 
 ; So that elements is a list of legit, defined functions
-(def elements [;catered
-               concatenation
+(def elements [concatenation
                grouping
                repetition
                optional-form
@@ -131,14 +112,10 @@
   (many (process-ebnf-element (:element element) ptree)))
 
 (defn process-terminal [element ptree]
-  (let [item (first (:string element))]
-      (token item)))
+  (let [item (first element)]
+      (token item item)))
 
-(defn process-special [element ptree]
-  (println element)
-  (/ 1 0))
-
-(defn replace-special [item]
+(defn- replace-special [item]
   (cond (= item "NEWLINE")
         "\n"
         (= item "SPACE")
@@ -148,8 +125,11 @@
         :else
         item))
 
+(defn process-special [element ptree]
+  (token (replace-special (first element))))
+
 (defn process-ref [element ptree]
-  (let [k (first (:name (:identifier element)))]
+  (let [k (first (:identifier element))]
     (retrieve k ptree)))
 
 (defn process-ebnf-element [element ptree]
@@ -170,16 +150,19 @@
           element)))
 
 (defn get-identifier [definition]
-  (first (:name (:identifier definition))))
+  (first (:identifier definition)))
 
 (defn process-ebnf-tree [tree]
   (let [values (:values tree)]
     (def parser-tree (atom {}))
     (let [new-tree (into {} 
             (for [definition values]
-              (let [definition (:definition definition)]
-                [(get-identifier definition) 
-                 (process-ebnf-element (:element definition) parser-tree)])))]
+              (let [definition (:definition definition)
+                    identifier (get-identifier definition)]
+                [identifier
+                 (create-parser 
+                   identifier
+                   (process-ebnf-element (:element definition) parser-tree))])))]
       (reset! parser-tree new-tree))))
 
 (def special-separators [["\"" "\"" :string] ["'" "'" :string] ["#" "\n" :comment]])
@@ -194,20 +177,25 @@
 
 (defn create-ebnf-metaparser [tree]
   (fn [filename] (read-source filename
-                              (get tree "list")
+                              (get tree "body")
                               [" " "(" ")" "\n"]
                               special-separators
-                              tag-pairs)))
+                              tag-pairs
+                              {:head [:all]}
+                              )))
 
 (defn ebnf [filename]
-  (let [[tree remaining log] 
+  (let [[[tree remaining ebnf-log] log]
         (read-source filename 
                      (many definition)
                      separators 
                      special-separators
-                     tag-pairs)]
-    (println "EBNF Log:")
-    (clojure.pprint/pprint log)
+                     tag-pairs
+                     {:head [:all]})]
+    ; (println "Log:")
+    ; (clojure.pprint/pprint log)
+    ; (println "EBNF Log:")
+    ; (clojure.pprint/pprint ebnf-log)
     (println "Tree:")
     (clojure.pprint/pprint tree)
     (println "Remaining:")

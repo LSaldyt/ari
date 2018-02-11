@@ -21,4 +21,5 @@ s_expression = atomic_symbol
       | "(", s_expression, ".", s_expression, ")" 
       | list;
 
-body = list, "\n";
+s = atomic_symbol;
+body = s;
