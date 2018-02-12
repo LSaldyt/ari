@@ -4,16 +4,20 @@
   (let [head (:head log-tree)
         head+ (concat head (list k))
         result (get-in log-tree head+)]
-    (println (apply str (repeat (count head) "  ")) data)
-    (if result
-      (assoc-in log-tree head+ (concat result (list data)))
-      (assoc-in log-tree head+ (list data)))))
+    (println (apply str (repeat (count head) "  ")) data)))
+    ; (println head+)
+    ; (if result
+    ;   (assoc-in log-tree head+ (concat result (list data)))
+    ;   (assoc-in log-tree head+ (list data)))))
 
 (defn log [log-tree message]
   (save log-tree message :log))
 
 (defn snapshot [log-tree state]
   (save log-tree state :state))
+
+(defn commit [log-tree message state]
+  (snapshot (log log-tree message) state))
 
 (defn log-pop [log-tree]
   (let [head (:head log-tree)]

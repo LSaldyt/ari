@@ -118,10 +118,13 @@
 (defn lex 
   "Convert a string (file) into tagged tokens"
   [separators special-separators tag-pairs log content]
-  (println "Lexing..")
-  (let [result
-        (-> content
-            (separate separators special-separators)
-            (do-tag (create-taggers tag-pairs)))]
-    (println "Done")
-    [result (log/log log "Lexing finished")]))
+  (println "Lexing.." separators)
+  (if (empty? separators)
+    (do (println (map (fn [c] [(str c) :char]) content))
+      [(map (fn [c] [(str c) :char]) content) log])
+    (let [result
+          (-> content
+              (separate separators special-separators)
+              (do-tag (create-taggers tag-pairs)))]
+      (println "Done")
+      [result (log/log log "Lexing finished")])))

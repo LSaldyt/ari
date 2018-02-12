@@ -178,11 +178,10 @@
 (defn create-ebnf-metaparser [tree]
   (fn [filename] (read-source filename
                               (get tree "body")
-                              [" " "(" ")" "\n"]
-                              special-separators
-                              tag-pairs
-                              {:head [:all]}
-                              )))
+                              [];[" " "(" ")" "\n"]
+                              [];special-separators
+                              [];tag-pairs
+                              {:head [:all]})))
 
 (defn ebnf [filename]
   (let [[[tree remaining ebnf-log] log]

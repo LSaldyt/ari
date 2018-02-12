@@ -20,7 +20,6 @@
    If there are no parsers left, throw an error.
 
    TODO: Once there is no input left, create a parse tree with the longest parser. If two syntax elements are ambiguous, throw an error.
-
   "
 
   (:require [ari.log :as log]
@@ -181,15 +180,15 @@
 (defmacro create-parser [ident parser]
   "Create an unnamed parser that tags its resulting tree with the keyword ident"
   `(fn [tokens# log#]
-     (let [log# (log/log log# (str "Began " ~ident))
+     (let [log# (log/commit log# (str "Began " ~ident) {:tokens tokens#})
            [tree# remaining# inlog#] (use-parser ~parser tokens# log#)]
        (if (nil? tree#)
          [nil 
           remaining#
-          (log/log inlog# (str "Finished " ~ident " unsuccessfully"))]
+          (log/commit inlog# (str "Finished " ~ident " unsuccessfully") {:tree nil})]
          [{(keyword '~ident) tree#} 
           remaining# 
-          (log/log inlog# (str "Finished " ~ident " successfully"))]))))
+          (log/commit inlog# (str "Finished " ~ident " successfully") {:tree tree#})]))))
 
 (defmacro defparser [ident parser]
   "Create an named parser (named $ident) that tags its resulting tree with the keyword $ident"
@@ -203,7 +202,7 @@
       result)))
 
 (defn parse [parser log content]
-  (println "Parsing " )
+  (println "Parsing " content)
   [(parser content log) (log/log log "Parsing finished")])
 
 (def whitespace (optional (discard (many (from [(tag "space") (tag "newline")])))))
