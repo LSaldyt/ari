@@ -26,7 +26,8 @@
     ; (println "EBNF/LISP tests")
      (let [lisp (ebnf "data/languages/lisp.lang")]
        ;(println lisp)
-       (clojure.pprint/pprint (lisp "data/samples/simple_lisp.lisp")))
+       (clojure.pprint/pprint (lisp "data/samples/simple_lisp.lisp"))
+       (clojure.pprint/pprint (lisp "data/samples/simple_lisp2.lisp")))
     ; (let [t (ebnf "data/languages/test.lang")]
     ;   (clojure.pprint/pprint (t "data/samples/test.test")))
     ;(let [[infile outfile] args]

@@ -92,6 +92,8 @@
    Currently, if the first parser succeeds, stops parsing."
   ; TODO: continue parsing and choose best tree?
   ; Either way, this parser is one of the most important
+  (println (count parsers))
+  (println parsers)
   (fn [tokens log] 
     (let [log (log/log log "Began from")]
       (loop [remaining-parsers parsers]
@@ -117,12 +119,19 @@
   (let [s (demunge-fn fn-object)]
     (subs s 0 (- (count s) 9))))
 
-(defn from-except [parsers & out-parsers]
+(defn from-except [parsers out-parsers]
   "Apply the from function to a list of parsers, excluding others"
-  (from (remove 
-         (fn [x] 
-           (some #(= (fn-name x) (fn-name %)) out-parsers)) 
-         parsers)))
+  (println (doall (map #(fn-name %) out-parsers)))
+  (println (doall (map #(fn-name %) parsers)))
+  (let [in-parsers 
+        (remove 
+           (fn [x] 
+             (println (fn-name x))
+             (println (doall (map #(fn-name %) out-parsers)))
+             (some #(= (fn-name x) (fn-name %)) out-parsers)) 
+           parsers)]
+  (partial use-parser
+    (from in-parsers))))
 
 (defn optional [parser]
   "Optionally parse a parser"
@@ -180,7 +189,7 @@
 (defmacro create-parser [ident parser]
   "Create an unnamed parser that tags its resulting tree with the keyword ident"
   `(fn [tokens# log#]
-     (let [log# (log/commit log# (str "Began " ~ident) {:tokens tokens#})
+     (let [log# (log/log log# (str "Began " ~ident)) 
            [tree# remaining# inlog#] (use-parser ~parser tokens# log#)]
        (if (nil? tree#)
          [nil 

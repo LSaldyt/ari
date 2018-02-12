@@ -42,18 +42,18 @@
        test-tokens
        {})))
 
-(def n-parser (tag "N"))
+(defparser n-parser (tag "N"))
+(defparser p-parser (tag "P"))
 
 (deftest from-test
   (testing "from"
     (is (full-tree
-      ((from-except [(tag "NAH") (tag "name")] [(tag "N")])
-       [["x" "name"]]
+      ((from-except [n-parser] [p-parser])
+       [["N" "N"]]
        {})))
-    ; Broken:
-    (is (not (full-tree
+    (is (nil? (first 
       ((from-except [n-parser] [n-parser])
-       [["x" "N"]]
+       [["N" "N"]]
        {}))))
     (is (full-tree
       ((from [(tag "NAH") (tag "name")])
@@ -63,16 +63,15 @@
 (deftest many-test
   (testing "many"
     (is (full-tree
-          ((many (tag "x"))
+          ((many (tag "name"))
            [["x" "name"]["x" "name"]]
           {})))
-    ; broken
     (is (full-tree
           ((many (tag "x"))
            []
           {})))
     (is (full-tree
-          ((many1 (tag "x"))
+          ((many1 (tag "name"))
            [["x" "name"]["x" "name"]]
           {})))
     (is (not (full-tree

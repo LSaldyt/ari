@@ -19,7 +19,7 @@
 ;   special sequence 	? ... ?
 ;   exception 	-
 
-(def separators [":" " " "(" ")" "{" "}" "'" "|" "\n" "." "!" "`" "@" "," "=" "\"" ";"])
+(def separators [":" " " "(" ")" "{" "}" "'" "|" "\n" "." "!" "`" "@" "," "=" "\"" ";" "]" "["])
 (def tag-pairs [[#"^([A-Za-z]|[0-9]|_)+$" "name"]
                 [#"'" "quote"]
                 [#"\"" "quote"]
@@ -52,7 +52,7 @@
                          (token ";")
                          whitespace]))
 
-(defparser alt-element (from-except elements alternation))
+(defparser alt-element (from-except elements [alternation]))
 
 (defparser alternation (sep-by1 alt-element (white (token "|"))))
 
@@ -77,7 +77,7 @@
                        whitespace
                        (token ")") ]))
 
-(defparser con-element (from-except elements concatenation alternation))
+(defparser con-element (from-except elements [concatenation alternation]))
 
 (defparser concatenation (sep-by1 con-element (white (token ","))))
 
@@ -132,10 +132,16 @@
   (let [k (first (:identifier element))]
     (retrieve k ptree)))
 
+(defn process-optional [element ptree]
+  (println element)
+  (/ 1 0))
+
 (defn process-ebnf-element [element ptree]
   (let [[k tree] (break-tree element)]
     (cond (= k :alternation)
           (process-alternation tree ptree)
+          (= k :optional-form)
+          (process-optional tree ptree)
           (= k :concatenation)
           (process-concatenation tree ptree)
           (= k :repetition)

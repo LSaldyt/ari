@@ -4,7 +4,7 @@
   (let [head (:head log-tree)
         head+ (concat head (list k))
         result (get-in log-tree head+)]
-    (println (apply str (repeat (count head) "  ")) data)))
+    (println (apply str (repeat (count head+) "  ")) data)))
     ; (println head+)
     ; (if result
     ;   (assoc-in log-tree head+ (concat result (list data)))
