@@ -181,18 +181,19 @@
 (defmacro create-parser [ident parser]
   "Create an unnamed parser that tags its resulting tree with the keyword ident"
   `(fn [tokens# log#]
-     (let [[tree# remaining# inlog#] (use-parser ~parser tokens# log#)]
+     (let [log# (log/log log# (str "Began " ~ident))
+           [tree# remaining# inlog#] (use-parser ~parser tokens# log#)]
        (if (nil? tree#)
-         [nil remaining# inlog#]
-         [{(keyword '~ident) tree#} remaining# inlog#]))))
+         [nil 
+          remaining#
+          (log/log inlog# (str "Finished " ~ident " unsuccessfully"))]
+         [{(keyword '~ident) tree#} 
+          remaining# 
+          (log/log inlog# (str "Finished " ~ident " successfully"))]))))
 
 (defmacro defparser [ident parser]
   "Create an named parser (named $ident) that tags its resulting tree with the keyword $ident"
-  `(defn ~ident [tokens# log#]
-     (let [[tree# remaining# inlog#] (use-parser ~parser tokens# log#)]
-       (if (nil? tree#)
-         [nil remaining# inlog#]
-         [{(keyword '~ident) tree#} remaining# inlog#]))))
+  `(def ~ident (create-parser ~ident ~parser)))
 
 (defn retrieve [k ptree-atom]
   "Retrieve another parser by name from an atomic dictionary"

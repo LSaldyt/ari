@@ -1,13 +1,19 @@
 (ns ari.log)
 
-(defn log [log-tree message]
+(defn save [log-tree data k]
   (let [head (:head log-tree)
-        head+ (concat head (list :log))
+        head+ (concat head (list k))
         result (get-in log-tree head+)]
-    (println (apply str (repeat (count head) "  ")) message)
+    (println (apply str (repeat (count head) "  ")) data)
     (if result
-      (assoc-in log-tree head+ (concat result (list message)))
-      (assoc-in log-tree head+ (list message)))))
+      (assoc-in log-tree head+ (concat result (list data)))
+      (assoc-in log-tree head+ (list data)))))
+
+(defn log [log-tree message]
+  (save log-tree message :log))
+
+(defn snapshot [log-tree state]
+  (save log-tree state :state))
 
 (defn log-pop [log-tree]
   (let [head (:head log-tree)]
