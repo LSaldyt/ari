@@ -1,8 +1,21 @@
 (ns ari.parse.base
   (:require [ari.log :as log]))
 
+(defn- demunge-fn
+  "Helper function for retreiving a function name as a string"
+  [fn-object]
+  (let [dem-fn (str fn-object)
+        pretty (second (re-find #"(.*?\/.*?)[\-\-|@].*" dem-fn))]
+    (if pretty pretty dem-fn)))
+
+(defn fn-name [fn-object]
+  "Function for retreiving a function name as a string"
+  (let [s (demunge-fn fn-object)]
+    (subs s 0 (- (count s) 9))))
+
+
 (defn use-parser [parser tokens log]
-  (let [log (log/log-push log "test")
+  (let [log (log/log-push log (fn-name parser))
         [tree remaining in-log] (parser tokens log)
         in-log (log/log-pop in-log)]
     [tree remaining in-log]))

@@ -187,7 +187,7 @@
                               [];[" " "(" ")" "\n"]
                               [];special-separators
                               [];tag-pairs
-                              {:head [:all]})))
+                              {:head [:all] :verbosity 9})))
 
 (defn ebnf [filename]
   (let [[[tree remaining ebnf-log] log]
@@ -196,11 +196,9 @@
                      separators 
                      special-separators
                      tag-pairs
-                     {:head [:all]})]
-    ; (println "Log:")
-    ; (clojure.pprint/pprint log)
-    ; (println "EBNF Log:")
-    ; (clojure.pprint/pprint ebnf-log)
+                     {:head [:all] :verbosity 3})]
+    (println "Log:")
+    (clojure.pprint/pprint log)
     (println "Tree:")
     (clojure.pprint/pprint tree)
     (println "Remaining:")
