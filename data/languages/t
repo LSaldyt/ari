@@ -1,5 +1,1 @@
-list = "(", { inner }, extra, ")";
-inner = "a", "b";
-extra = {space};
-space = " ";
-body = list, NEWLINE;
+body = ["x"], NEWLINE;

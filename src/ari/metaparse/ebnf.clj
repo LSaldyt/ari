@@ -42,39 +42,29 @@
 
 (defparser element (from elements))
 
-(defparser definition (conseq-merge
+(defparser definition (ordered
                         [identifier
-                         whitespace
                          (token "=")
-                         whitespace
                          element
-                         whitespace
-                         (token ";")
-                         whitespace]))
+                         (token ";")]))
 
 (defparser alt-element (from-except elements [alternation]))
 
 (defparser alternation (sep-by1 alt-element (white (token "|"))))
 
-(defparser optional-form (conseq-merge 
+(defparser optional-form (ordered 
                            [(token "[")
-                            whitespace
-                            terminal
-                            whitespace
+                            element
                             (token "]")]))
 
-(defparser repetition (conseq-merge
+(defparser repetition (ordered
                         [(token "{")
-                         whitespace
                          element
-                         whitespace
                          (token "}")]))
 
-(defparser grouping (conseq-merge
+(defparser grouping (ordered
                       [(token "(")
-                       whitespace
                        element
-                       whitespace
                        (token ")") ]))
 
 (defparser con-element (from-except elements [concatenation alternation]))
@@ -83,10 +73,10 @@
 
 ; So that elements is a list of legit, defined functions
 (def elements [concatenation
+               alternation
                grouping
                repetition
                optional-form
-               alternation
                special
                terminal
                identifier])
