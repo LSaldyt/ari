@@ -130,6 +130,8 @@
   (let [[k tree] (break-tree element)]
     (cond (= k :element)
           (process-ebnf-element tree ptree)
+          (= k :grouping)
+          (process-ebnf-element tree ptree)
           (= k :alternation)
           (process-alternation tree ptree)
           (= k :optional-form)
