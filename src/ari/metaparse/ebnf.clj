@@ -123,11 +123,14 @@
     (retrieve k ptree)))
 
 (defn process-optional [element ptree]
-  (optional (process-ebnf-element element ptree)))
+  (println "HERE " (process-ebnf-element element ptree))
+  (optional (process-ebnf-element (:element element) ptree)))
 
 (defn process-ebnf-element [element ptree]
   (let [[k tree] (break-tree element)]
-    (cond (= k :alternation)
+    (cond (= k :element)
+          (process-ebnf-element tree ptree)
+          (= k :alternation)
           (process-alternation tree ptree)
           (= k :optional-form)
           (process-optional tree ptree)
@@ -142,7 +145,7 @@
           (= k :identifier)
           (process-ref element ptree)
           :else
-          element)))
+          (throw (AssertionError. (str "Incorrect ebnf element: " k ", " element))))))
 
 (defn get-identifier [definition]
   (first (:identifier definition)))

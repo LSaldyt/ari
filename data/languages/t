@@ -1,1 +1,2 @@
-body = ["x"], NEWLINE;
+list = "(", {"a", "b", " "}, ")";
+body = list, NEWLINE;
