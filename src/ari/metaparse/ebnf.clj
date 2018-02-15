@@ -133,8 +133,7 @@
     (retrieve k ptree)))
 
 (defn process-optional [element ptree]
-  (println element)
-  (/ 1 0))
+  (optional (process-ebnf-element element ptree)))
 
 (defn process-ebnf-element [element ptree]
   (let [[k tree] (break-tree element)]
