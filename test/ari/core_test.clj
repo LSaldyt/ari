@@ -6,6 +6,8 @@
 
 ;TODO: macros unifying common testing patterns
 
+(def start-log {:head [] :verbosity 100})
+
 (def test-tokens [["a" "name"] ["|" "pipe"] ["b" "name"]])
 
 (defn full-tree [answer]
@@ -16,15 +18,15 @@
     (is (= 2 (count (:values (first
       ((sep-by (tag "name" :name) (token "|"))
                test-tokens
-               {}))))))
+               start-log))))))
     (is (nil? (first 
       ((sep-by1 (tag "name" :name) (token "|"))
        [["a" "name"]]
-       {}))))
+       start-log))))
     (is (= 2 (count (:values (first
       ((sep-by1 (tag "name" :name) (token "|"))
                test-tokens
-               {}
+               start-log
                ))))))))
 
 (def conseq-parsers [(token "a" :a)
@@ -36,11 +38,11 @@
     (is (full-tree
       ((conseq-merge conseq-parsers)
        test-tokens
-       {})))))
+       start-log)))))
     (is (full-tree
       ((conseq conseq-parsers)
        test-tokens
-       {})))
+       start-log)))
 
 (defparser n-parser (tag "N"))
 (defparser p-parser (tag "P"))
@@ -50,56 +52,56 @@
     (is (full-tree
       ((from-except [n-parser] [p-parser])
        [["N" "N"]]
-       {})))
+       start-log)))
     (is (nil? (first 
       ((from-except [n-parser] [n-parser])
        [["N" "N"]]
-       {}))))
+       start-log))))
     (is (full-tree
       ((from [(tag "NAH") (tag "name")])
        [["x" "name"]]
-       {})))))
+       start-log)))))
 
 (deftest many-test
   (testing "many"
     (is (full-tree
           ((many (tag "name"))
            [["x" "name"]["x" "name"]]
-          {})))
+          start-log)))
     (is (full-tree
           ((many (tag "x"))
            []
-          {})))
+          start-log)))
     (is (full-tree
           ((many1 (tag "name"))
            [["x" "name"]["x" "name"]]
-          {})))
+          start-log)))
     (is (not (full-tree
           ((many1 (tag "x"))
            []
-          {}))))))
+          start-log))))))
 
 (deftest optional-test
   (testing "optional"
     (is (full-tree
           ((optional (tag "x"))
            []
-           {})))
+           start-log)))
     (is (full-tree
           ((optional (tag "x"))
            [["x" "x"]]
-           {})))))
+           start-log)))))
 
 (deftest discard-test
   (testing "discard"
     (is (full-tree
           ((discard (tag "x"))
            [["x" "x"]]
-           {})))
+           start-log)))
     (is (not (full-tree
           ((discard (tag "x"))
            []
-           {}))))))
+           start-log))))))
 
 (def parser-tree (atom {:ref (tag "x")}))
 
@@ -108,11 +110,11 @@
     (is (full-tree
           ((retrieve :ref parser-tree)
            [["x" "x"]]
-           {})))
+           start-log)))
     (is (not (full-tree
           ((retrieve :ref parser-tree)
            []
-           {}))))))
+           start-log))))))
 
 ; Test status
 ; x conseq 

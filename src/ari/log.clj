@@ -39,3 +39,9 @@
                :verbosity verb)]
     tree))
 
+(defn join [a b]
+  (let [head (:head a)
+        all-a (:all a)
+        all-b (:all b)]
+    {:head head
+     :all (merge-with concat all-a all-b)}))
