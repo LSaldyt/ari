@@ -28,6 +28,8 @@
     ;   (clojure.pprint/pprint (t "data/samples/t")))
     ; (let [t2 (ebnf "data/languages/t2")]
     ;   (clojure.pprint/pprint (t2 "data/samples/t2")))
+    (println (ebnf "data/languages/C.txt"))
+    (/ 1 0)
      (let [lisp (ebnf "data/languages/lisp.lang")]
        ;(println lisp)
        (clojure.pprint/pprint (lisp "data/samples/simple_lisp.lisp"))
