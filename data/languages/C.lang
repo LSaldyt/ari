@@ -28,20 +28,20 @@ type_specifier = "void"
                    | "enum_specifier"
                    | "typedef_name";
 
-struct_or_union_specifier = struct_or_union identifier { {struct_declaration} }
-                              | struct_or_union { {struct_declaration} }
-                              | struct_or_union identifier;
+struct_or_union_specifier = struct_or_union, identifier, { {struct_declaration} }
+                              | struct_or_union, { {struct_declaration} }
+                              | struct_or_union, identifier;
 
 struct_or_union = "struct"
                     | "union";
 
-struct_declaration = {specifier_qualifier} struct_declarator_list;
+struct_declaration = {specifier_qualifier}, struct_declarator_list;
 
 specifier_qualifier = type_specifier
                         | type_qualifier;
 
 struct_declarator_list = struct_declarator
-                           | struct_declarator_list , struct_declarator;
+                           | struct_declarator_list, ",", struct_declarator;
 
 struct_declarator = declarator
                       | declarator, ":", constant_expression

@@ -20,7 +20,7 @@
      :default false :flag true])]
     (when (:help opts)
       (println banner))
-    ; (println (pybnf "data/languages/simple.lang" "data/samples/test.simp"))
+     (println (pybnf "data/languages/simple.lang" "data/samples/test.simp"))
     ; (clojure.pprint/pprint (ebnf "data/languages/ebnf.lang"))
     ; (clojure.pprint/pprint (ebnf "data/languages/pascal_like.lang"))
     ; (println "EBNF/LISP tests")
@@ -28,12 +28,12 @@
     ;   (clojure.pprint/pprint (t "data/samples/t")))
     ; (let [t2 (ebnf "data/languages/t2")]
     ;   (clojure.pprint/pprint (t2 "data/samples/t2")))
-    (println (ebnf "data/languages/C.txt"))
-    (/ 1 0)
-     (let [lisp (ebnf "data/languages/lisp.lang")]
-       ;(println lisp)
-       (clojure.pprint/pprint (lisp "data/samples/simple_lisp.lisp"))
-       (clojure.pprint/pprint (lisp "data/samples/simple_lisp2.lisp")))
+    ;(println (ebnf "data/languages/C.lang"))
+    ;(/ 1 0)
+    ; (let [lisp (ebnf "data/languages/lisp.lang")]
+    ;   ;(println lisp)
+    ;   (clojure.pprint/pprint (lisp "data/samples/simple_lisp.lisp"))
+    ;   (clojure.pprint/pprint (lisp "data/samples/simple_lisp2.lisp")))
     ;(let [list-lang (ebnf "data/languages/list.lang")]
     ;  (clojure.pprint/pprint (list-lang "data/samples/list")))
     ; (clojure.pprint/pprint (pybnf "data/languages/lisp.pybnf" "data/samples/simple_list2.lisp"))

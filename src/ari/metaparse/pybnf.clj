@@ -55,7 +55,7 @@
 
 (defparser syntax-element (conseq-merge [(tag "name" :name) 
                               (token ":") 
-                              parser-part 
+                              (sep-by parser-part (many (token " ")))
                               (tag "newline")]))
 
 (defparser separator-def (conseq-merge
@@ -110,6 +110,8 @@
 (defn outer-create-syntax-element [tree]
   (let [{ident :name :as all} (:syntax-element tree)
         inner (dissoc all :name)]
+    (println inner)
+    (/ 1 0)
     (let [result 
           (create-syntax-element inner)]
       result)))
@@ -143,7 +145,7 @@
                               (map 
                                 #(list (re-pattern (first %)) (second %)) 
                                 (:taggers bnf-file-tree-clean))
-                              {:head [:all]}
+                              {:head [:all] :verbosity 10}
                               )))
 
 (defn pybnf [filename testfile]
@@ -153,6 +155,6 @@
                      separators 
                      special-separators
                      tag-pairs
-                     {:head [:all]})]
+                     {:head [:all] :verbosity 10})]
   (let [clean-tree (add-to-bnf-file (process-bnf-file tree))]
     ((create-metaparser clean-tree) testfile))))
