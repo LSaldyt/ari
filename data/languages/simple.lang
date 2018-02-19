@@ -1,6 +1,6 @@
 __separators__='!','@','-'
 __taggers__={'a':'b','c':'d'}
 a:('b'|'c')
-e:'f' 'g'
+e:'f'
 g:'h i'
 j:`@k 'l'`

@@ -55,7 +55,8 @@
 
 (defparser syntax-element (conseq-merge [(tag "name" :name) 
                               (token ":") 
-                              (sep-by parser-part (many (token " ")))
+                              parser-part
+                              ;(sep-by parser-part (many (token " ")))
                               (tag "newline")]))
 
 (defparser separator-def (conseq-merge
@@ -122,7 +123,7 @@
                  (:values (:tagger-def (:bnf-file tree))))
    :separators (map #(first (:sep %)) 
                     (:values (:separator-def (:bnf-file tree))))
-   :parsers (map outer-create-syntax-element (:values (:bnf-file tree)))})
+   :parsers (doall (map outer-create-syntax-element (:values (:bnf-file tree))))})
 
 (defn add-to-bnf-file [tree]
   (let [separators (:separators tree)]
@@ -149,12 +150,14 @@
                               )))
 
 (defn pybnf [filename testfile]
-  (let [[tree remaining log] 
+  (let [[[tree remaining log] in-log]
         (read-source filename 
                      bnf-file 
                      separators 
                      special-separators
                      tag-pairs
                      {:head [:all] :verbosity 10})]
+    (clojure.pprint/pprint tree)
   (let [clean-tree (add-to-bnf-file (process-bnf-file tree))]
+    (clojure.pprint/pprint clean-tree)
     ((create-metaparser clean-tree) testfile))))
