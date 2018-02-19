@@ -42,7 +42,7 @@
                           [(token "`")
                            (token "@")
                            (tag "name" :key)
-                           whitespace
+                           (many1 (token " "))
                            parser-part
                            (token "`")]))
 
@@ -56,7 +56,7 @@
 (defparser syntax-element (conseq-merge [(tag "name" :name) 
                               (token ":") 
                               ;parser-part
-                              (sep-by parser-part (white (token ",")))
+                              (sep-by (spaced parser-part) (spaced (token ",")))
                               (tag "newline")]))
 
 (defparser separator-def (conseq-merge
@@ -97,12 +97,15 @@
         (replace-special (first (get tree :tag [any])))))
 
 (defn create-syntax-element [tree]
-  (let [inner-ident (first (keys tree))
+  (let [inner-ident (first (remove #(= % :values) (keys tree)))
         inner-tree (inner-ident tree)]
+    ;(clojure.pprint/pprint inner-tree)
     (cond (= inner-ident :or-operator)
           (from (map create-syntax-element (:values inner-tree)))
           (= inner-ident :direct-token)
           (create-direct-token inner-tree)
+          (= inner-ident :identifier)
+          (/ 1 0)
           (= inner-ident :key-operator)
           (create-parser (symbol (first (:key inner-tree))) (create-syntax-element (dissoc inner-tree :key)))
           (= inner-ident :many-operator)

@@ -30,10 +30,11 @@
     ;   (clojure.pprint/pprint (t2 "data/samples/t2")))
     ;(println (ebnf "data/languages/C.lang"))
     ;(/ 1 0)
-    ; (let [lisp (ebnf "data/languages/lisp.lang")]
-    ;   ;(println lisp)
-    ;   (clojure.pprint/pprint (lisp "data/samples/simple_lisp.lisp"))
-    ;   (clojure.pprint/pprint (lisp "data/samples/simple_lisp2.lisp")))
+     ;(let [lisp (ebnf "data/languages/lisp.lang")]
+     ;  ;(println lisp)
+     ;  (clojure.pprint/pprint (lisp "data/samples/simple_lisp.lisp"))
+     ;  (clojure.pprint/pprint (lisp "data/samples/simple_lisp2.lisp")))
+    (println (pybnf "data/languages/lisp.pybnf" "data/samples/pylisp"))
     ;(let [list-lang (ebnf "data/languages/list.lang")]
     ;  (clojure.pprint/pprint (list-lang "data/samples/list")))
     ; (clojure.pprint/pprint (pybnf "data/languages/lisp.pybnf" "data/samples/simple_list2.lisp"))

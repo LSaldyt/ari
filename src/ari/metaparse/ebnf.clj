@@ -92,7 +92,7 @@
 (defn process-concatenation [element ptree]
   (let [values (map :con-element (:values element))]
     (let [elements (map #(process-ebnf-element % ptree) values)]
-      (conseq-merge elements))))
+      (conseq elements))))
 
 (defn process-alternation [element ptree]
   (let [values (map :alt-element (:values element))]
