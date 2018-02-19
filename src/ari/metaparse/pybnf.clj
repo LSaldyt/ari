@@ -55,8 +55,8 @@
 
 (defparser syntax-element (conseq-merge [(tag "name" :name) 
                               (token ":") 
-                              parser-part
-                              ;(sep-by parser-part (many (token " ")))
+                              ;parser-part
+                              (sep-by parser-part (white (token ",")))
                               (tag "newline")]))
 
 (defparser separator-def (conseq-merge
@@ -111,10 +111,8 @@
 (defn outer-create-syntax-element [tree]
   (let [{ident :name :as all} (:syntax-element tree)
         inner (dissoc all :name)]
-    (println inner)
-    (/ 1 0)
     (let [result 
-          (create-syntax-element inner)]
+          (conseq-merge (map create-syntax-element (:values inner)))]
       result)))
 
 
@@ -158,6 +156,7 @@
                      tag-pairs
                      {:head [:all] :verbosity 10})]
     (clojure.pprint/pprint tree)
+    (clojure.pprint/pprint remaining)
   (let [clean-tree (add-to-bnf-file (process-bnf-file tree))]
     (clojure.pprint/pprint clean-tree)
     ((create-metaparser clean-tree) testfile))))
