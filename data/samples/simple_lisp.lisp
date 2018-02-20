@@ -1,1 +1,2 @@
-(add 2 2)
+(println "Hello World")
+(println (add 2 2))
