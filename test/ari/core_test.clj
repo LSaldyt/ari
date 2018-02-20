@@ -2,130 +2,53 @@
   (:require [clojure.test :refer :all]
             [ari.core :refer :all]
             [ari.parse.parse :refer :all]
-            [ari.parse.base :refer :all]))
+            [ari.parse.base :refer :all]
+            [ari.metaparse.pybnf :refer [pybnf]]
+            [ari.metaparse.ebnf :refer [ebnf]]
+            [ari.translate :refer [translate]]))
 
-;TODO: macros unifying common testing patterns
+(defn lang [filename]
+  (str "test/data/languages/" filename))
 
-(def start-log {:head [] :verbosity 100})
+(defn sample [filename]
+  (str "test/data/samples/" filename))
 
-(def test-tokens [["a" "name"] ["|" "pipe"] ["b" "name"]])
+(defn test-pybnf [in out]
+  (let [result (pybnf (lang in) (sample out))]
+    (println result)
+    (println (first (first result)))))
 
-(defn full-tree [answer]
-  (not (nil? (first answer))))
+(deftest pybnf-test
+  (testing "simple"
+    (test-pybnf "simple.lang" "test.simp")))
 
-(deftest sep-test
-  (testing "sepby"
-    (is (= 2 (count (:values (first
-      ((sep-by (tag "name" :name) (token "|"))
-               test-tokens
-               start-log))))))
-    (is (nil? (first 
-      ((sep-by1 (tag "name" :name) (token "|"))
-       [["a" "name"]]
-       start-log))))
-    (is (= 2 (count (:values (first
-      ((sep-by1 (tag "name" :name) (token "|"))
-               test-tokens
-               start-log
-               ))))))))
+;(def test-separators ["=" " " ">>>" "\n"])
+;(def test-tag-pairs [[#"^[0-9]*$" "int"]])
+;(def test-parser (conseq [(wild :name) (token " ") (token "=" :op) (token " ") (tag "int" :value) (wild)]))
 
-(def conseq-parsers [(token "a" :a)
-                     (token "|" :pipe)
-                     (token "b" :b)])
+;(def special-separators [["\"" "\"" :string] ["'" "'" :string] ["#" "\n" :comment]])
 
-(deftest conseq-test
-  (testing "conseq"
-    (is (full-tree
-      ((conseq-merge conseq-parsers)
-       test-tokens
-       start-log)))))
-    (is (full-tree
-      ((conseq conseq-parsers)
-       test-tokens
-       start-log)))
-
-(defparser n-parser (tag "N"))
-(defparser p-parser (tag "P"))
-
-(deftest from-test
-  (testing "from"
-    (is (full-tree
-      ((from-except [n-parser] [p-parser])
-       [["N" "N"]]
-       start-log)))
-    (is (nil? (first 
-      ((from-except [n-parser] [n-parser])
-       [["N" "N"]]
-       start-log))))
-    (is (full-tree
-      ((from [(tag "NAH") (tag "name")])
-       [["x" "name"]]
-       start-log)))))
-
-(deftest many-test
-  (testing "many"
-    (is (full-tree
-          ((many (tag "name"))
-           [["x" "name"]["x" "name"]]
-          start-log)))
-    (is (full-tree
-          ((many (tag "x"))
-           []
-          start-log)))
-    (is (full-tree
-          ((many1 (tag "name"))
-           [["x" "name"]["x" "name"]]
-          start-log)))
-    (is (not (full-tree
-          ((many1 (tag "x"))
-           []
-          start-log))))))
-
-(deftest optional-test
-  (testing "optional"
-    (is (full-tree
-          ((optional (tag "x"))
-           []
-           start-log)))
-    (is (full-tree
-          ((optional (tag "x"))
-           [["x" "x"]]
-           start-log)))))
-
-(deftest discard-test
-  (testing "discard"
-    (is (full-tree
-          ((discard (tag "x"))
-           [["x" "x"]]
-           start-log)))
-    (is (not (full-tree
-          ((discard (tag "x"))
-           []
-           start-log))))))
-
-(def parser-tree (atom {:ref (tag "x")}))
-
-(deftest retrieve-test
-  (testing "retrieve"
-    (is (full-tree
-          ((retrieve :ref parser-tree)
-           [["x" "x"]]
-           start-log)))
-    (is (not (full-tree
-          ((retrieve :ref parser-tree)
-           []
-           start-log))))))
-
-; Test status
-; x conseq 
-; x conseq-merge 
-; x many 
-; x many1
-; x from
-; x from-except
-; x optional
-; x discard
-; x sepby
-; x sepby1
-; x retrieve
-
+;(defn -main [& in-args]
+;   (println (pybnf "data/languages/simple.lang" "data/samples/test.simp"))
+;    ; (clojure.pprint/pprint (ebnf "data/languages/ebnf.lang"))
+;    ; (clojure.pprint/pprint (ebnf "data/languages/pascal_like.lang"))
+;    ; (println "EBNF/LISP tests")
+;    ; (let [t (ebnf "data/languages/t")]
+;    ;   (clojure.pprint/pprint (t "data/samples/t")))
+;    ; (let [t2 (ebnf "data/languages/t2")]
+;    ;   (clojure.pprint/pprint (t2 "data/samples/t2")))
+;    ;(println (ebnf "data/languages/C.lang"))
+;    ;(/ 1 0)
+;     ;(let [lisp (ebnf "data/languages/lisp.lang")]
+;     ;  ;(println lisp)
+;     ;  (clojure.pprint/pprint (lisp "data/samples/simple_lisp.lisp"))
+;     ;  (clojure.pprint/pprint (lisp "data/samples/simple_lisp2.lisp")))
+;    (println (pybnf "data/languages/lisp.pybnf" "data/samples/pylisp"))
+;    ;(let [list-lang (ebnf "data/languages/list.lang")]
+;    ;  (clojure.pprint/pprint (list-lang "data/samples/list")))
+;    ; (clojure.pprint/pprint (pybnf "data/languages/lisp.pybnf" "data/samples/simple_list2.lisp"))
+;    ; (let [t (ebnf "data/languages/test.lang")]
+;    ;   (clojure.pprint/pprint (t "data/samples/test.test")))
+;    ;(let [[infile outfile] args]
+;    ;  (translate infile outfile test-parser test-separators test-tag-pairs))))
+;    )

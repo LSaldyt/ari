@@ -94,7 +94,8 @@
 
 (defn create-direct-token [tree]
   (just (replace-special (first (get tree :token [any])))
-        (replace-special (first (get tree :tag [any])))))
+        (replace-special (first (get tree :tag [any])))
+        :token))
 
 (defn create-syntax-element [tree]
   (let [inner-ident (first (remove #(= % :values) (keys tree)))

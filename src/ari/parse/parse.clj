@@ -180,17 +180,23 @@
   `(fn [tokens# log#]
      (let [log# (log/log log# (str "Began " ~ident)) 
            [tree# remaining# inlog#] (use-parser ~parser tokens# log#)]
+       ;(println (type ~ident))
+       ;(println ~ident)
+       ;(println (keyword ~ident))
+       ;(println (keyword '~ident))
+       ;(println (keyword ~ident))
+       ;(/ 1 0)
        (if (nil? tree#)
          [nil 
           remaining#
           (log/commit inlog# (str "Finished " ~ident " unsuccessfully") {:tree nil})]
-         [{(keyword '~ident) tree#} 
+         [{(keyword ~ident) tree#} 
           remaining# 
           (log/commit inlog# (str "Finished " ~ident " successfully") {:tree tree#})]))))
 
 (defmacro defparser [ident parser]
   "Create an named parser (named $ident) that tags its resulting tree with the keyword $ident"
-  `(def ~ident (create-parser ~ident ~parser)))
+  `(def ~ident (create-parser '~ident ~parser)))
 
 (defn retrieve [k ptree-atom]
   "Retrieve another parser by name from an atomic dictionary"
