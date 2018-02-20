@@ -14,13 +14,23 @@
 
 (def special-separators [["\"" "\"" :string] ["'" "'" :string] ["#" "\n" :comment]])
 
+(defn lang [filename]
+  (str "data/languages/" filename))
+
+(defn sample [filename]
+  (str "data/samples/" filename))
+
+(defn do-pybnf [in out]
+  (clojure.pprint/pprint (pybnf (lang in) (sample out))))
+
 (defn -main [& in-args]
   (let [[opts args banner] (cli in-args
     ["-h" "--help" "Print this help"
      :default false :flag true])]
     (when (:help opts)
       (println banner))
-     (println (pybnf "data/languages/simple.lang" "data/samples/test.simp"))
+    (do-pybnf "simple.lang" "test.simp")
+    (do-pybnf "lisp.pybnf" "pylisp")
     ; (clojure.pprint/pprint (ebnf "data/languages/ebnf.lang"))
     ; (clojure.pprint/pprint (ebnf "data/languages/pascal_like.lang"))
     ; (println "EBNF/LISP tests")
@@ -34,7 +44,6 @@
      ;  ;(println lisp)
      ;  (clojure.pprint/pprint (lisp "data/samples/simple_lisp.lisp"))
      ;  (clojure.pprint/pprint (lisp "data/samples/simple_lisp2.lisp")))
-    (println (pybnf "data/languages/lisp.pybnf" "data/samples/pylisp"))
     ;(let [list-lang (ebnf "data/languages/list.lang")]
     ;  (clojure.pprint/pprint (list-lang "data/samples/list")))
     ; (clojure.pprint/pprint (pybnf "data/languages/lisp.pybnf" "data/samples/simple_list2.lisp"))
