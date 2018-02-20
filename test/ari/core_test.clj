@@ -16,11 +16,14 @@
 (defn test-pybnf [in out expected]
   (let [result (pybnf (lang in) (sample out))
         tree   (first (first result))]
+    ;(println tree)
     (= tree expected)))
 
 (deftest pybnf-test
   (testing "simple"
-    (test-pybnf "simple.lang" "test.simp" {:values ({:n {:token ["b" "unknown"]}})})))
+    (test-pybnf "simple.lang" "test.simp" {:values '({:n {:token ["b" "unknown"]}})})
+    (test-pybnf "lisp.pybnf" "pylisp" {:values '({:token ["\n" "unknown"]})})))
+
 
 ;(def test-separators ["=" " " ">>>" "\n"])
 ;(def test-tag-pairs [[#"^[0-9]*$" "int"]])
