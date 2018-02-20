@@ -20,10 +20,12 @@
     (= tree expected)))
 
 (deftest pybnf-test
-  (testing "simple"
+  (testing "pybnf"
     (test-pybnf "simple.lang" "test.simp" {:values '({:n {:token ["b" "unknown"]}})})
     (test-pybnf "lisp.pybnf" "pylisp" {:values '({:token ["\n" "unknown"]})})))
 
-; (let [list-lang (ebnf "data/languages/list.lang")]
-;   (clojure.pprint/pprint (list-lang "data/samples/list")))
-;  (clojure.pprint/pprint (pybnf "data/languages/lisp.pybnf" "data/samples/simple_list2.lisp"))
+(deftest ebnf-test
+  (testing "ebnf"
+    (not (nil? (clojure.pprint/pprint (ebnf (tlang "ebnf.lang")))))
+    (not (nil? (clojure.pprint/pprint (ebnf (tlang "pascal_like.lang")))))
+    ))
