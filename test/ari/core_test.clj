@@ -13,14 +13,14 @@
 (defn sample [filename]
   (str "test/data/samples/" filename))
 
-(defn test-pybnf [in out]
-  (let [result (pybnf (lang in) (sample out))]
-    (println result)
-    (println (first (first result)))))
+(defn test-pybnf [in out expected]
+  (let [result (pybnf (lang in) (sample out))
+        tree   (first (first result))]
+    (= tree expected)))
 
 (deftest pybnf-test
   (testing "simple"
-    (test-pybnf "simple.lang" "test.simp")))
+    (test-pybnf "simple.lang" "test.simp" {:values ({:n {:token ["b" "unknown"]}})})))
 
 ;(def test-separators ["=" " " ">>>" "\n"])
 ;(def test-tag-pairs [[#"^[0-9]*$" "int"]])
