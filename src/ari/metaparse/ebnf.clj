@@ -116,7 +116,7 @@
         item))
 
 (defn process-special [element ptree]
-  (token (replace-special (first element))))
+  (token (replace-special (first element)) :token))
 
 (defn process-ref [element ptree]
   (let [k (first (:identifier element))]
