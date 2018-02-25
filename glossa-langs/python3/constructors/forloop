@@ -1,0 +1,4 @@
+defines
+source
+for $loopvar$ in $loopexpr$: 
+`block loopbody`

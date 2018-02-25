@@ -1,0 +1,10 @@
+defines
+source
+def __every_func__():
+`block body`
+NEWLINE
+branch nonempty count
+every(__every_func__, `sep EMPTY count`, '$unit$')
+elsebranch
+every(__every_func__, 1, '$unit$')
+end

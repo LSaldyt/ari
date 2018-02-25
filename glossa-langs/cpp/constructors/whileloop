@@ -1,0 +1,11 @@
+defines
+header
+while ($boolexpr$)
+{
+`block body @;`
+}
+source
+while ($boolexpr$)
+{
+`block body @;`
+}

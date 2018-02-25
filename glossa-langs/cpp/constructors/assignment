@@ -1,0 +1,16 @@
+defines
+lval
+
+header
+branch defined lval 
+$lval$ $op$ $rval$
+elsebranch
+auto $lval$ $op$ $rval$
+end
+
+source
+branch defined lval 
+$lval$ $op$ $rval$
+elsebranch
+auto $lval$ $op$ $rval$
+end
