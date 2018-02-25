@@ -151,16 +151,16 @@
                               {:head [:all] :verbosity 10}
                               )))
 
-(defn pybnf [filename testfile]
+(defn pybnf [filename]
   (let [[[tree remaining log] in-log]
         (read-source filename 
                      bnf-file 
                      separators 
                      special-separators
                      tag-pairs
-                     {:head [:all] :verbosity 10})]
+                     {:head [:all] :verbosity 15})]
     (clojure.pprint/pprint tree)
     (clojure.pprint/pprint remaining)
   (let [clean-tree (add-to-bnf-file (process-bnf-file tree))]
     (clojure.pprint/pprint clean-tree)
-    ((create-metaparser clean-tree) testfile))))
+    (create-metaparser clean-tree))))

@@ -15,7 +15,7 @@
 (def special-separators [["\"" "\"" :string] ["'" "'" :string] ["#" "\n" :comment]])
 
 (defn lang [filename]
-  (str "data/languages/" filename))
+  (str "data/languages/" filename ".lang"))
 
 (defn sample [filename]
   (str "data/samples/" filename))
@@ -29,10 +29,14 @@
      :default false :flag true])]
     (when (:help opts)
       (println banner))
-     (let [lisp (ebnf "data/languages/lisp.lang")]
-       (clojure.pprint/pprint (lisp "data/samples/simple_lisp.lisp")))
-     ; TBNF:
-     ; A very interesting point: https://en.wikipedia.org/wiki/Translational_Backus%E2%80%93Naur_form
-     ; TBNF defines the structure of the abstract syntax tree
-    ;  (translate infile outfile test-parser test-separators test-tag-pairs))))
+      ;(let [lisp (ebnf (lang "lisp"))]
+      ;  (clojure.pprint/pprint (lisp (sample "simple_lisp.lisp"))))
+      (let [python (pybnf (lang "python3"))])
+
+    ; TBNF:
+    ; A very interesting point: https://en.wikipedia.org/wiki/Translational_Backus%E2%80%93Naur_form
+    ; TBNF defines the structure of the abstract syntax tree
+
+    ; End goal structure:
+    ; (translate infile outfile test-parser test-separators test-tag-pairs))))
     ))

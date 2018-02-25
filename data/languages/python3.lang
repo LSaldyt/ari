@@ -1,0 +1,3 @@
+__separators__=''
+__taggers__={}
+statement: `@val (main | class | if | whileloop | forloop | function | functioncall | memberaccess | assignment | pass | flowstmt | import | comment)` 

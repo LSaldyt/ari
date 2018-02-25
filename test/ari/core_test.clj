@@ -14,7 +14,7 @@
   (str "test/data/samples/" filename))
 
 (defn test-pybnf [in out expected]
-  (let [result (pybnf (tlang in) (tsample out))
+  (let [result ((pybnf (tlang in)) (tsample out))
         tree   (first (first result))]
     ;(println tree)
     (= tree expected)))

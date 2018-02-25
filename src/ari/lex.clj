@@ -119,6 +119,7 @@
   "Convert a string (file) into tagged tokens"
   [separators special-separators tag-pairs log content]
   (println "Lexing.." separators)
+  (println special-separators)
   (if (empty? separators)
     (do (println (map (fn [c] [(str c) :char]) content))
       [(map (fn [c] [(str c) :char]) content) log])

@@ -34,20 +34,20 @@
     (loop [parsers   given-parsers
            remaining tokens
            tree      '()
-           loop-log  (log/log log "Began conseq")]
+           loop-log  (log/vlog log "Began conseq")]
       (if (empty? parsers)
-        [{:sequence tree} remaining (log/commit loop-log "Conseq Success" tree)]
+        [{:sequence tree} remaining (log/vcommit loop-log "Conseq Success" tree)]
       (let [[in-tree in-remaining in-log] 
             (use-parser (first parsers) remaining loop-log)]
         (if (nil? in-tree)
-          [nil in-remaining (log/commit in-log "Stopped conseq" in-tree)]
+          [nil in-remaining (log/vcommit in-log "Stopped conseq" in-tree)]
           (recur (rest parsers)
                  in-remaining
                  ; Trust sub-parsers to only provide valid maps. 
                  ; Don't bother removing empty ones (They'll be summed with conseq-merge anyway).
                  ; Err... (address this)
                  (concat tree (list in-tree));(remove empty? (list in-tree)))
-                 (log/commit in-log "Continuing conseq" in-tree))))))))
+                 (log/vcommit in-log "Continuing conseq" in-tree))))))))
 
 (defn- unsequence 
   "Helper function for conseq-merge"
@@ -70,28 +70,28 @@
   (fn [tokens log] 
     (loop [remaining tokens
            values  '()
-           loop-log (log/commit log "Began Many" log)]
+           loop-log (log/vcommit log "Began Many" log)]
       (if (empty? remaining)
         [{:values values} 
          remaining 
-         (log/commit loop-log (str "Many success (no more tokens)") loop-log)]
+         (log/vcommit loop-log (str "Many success (no more tokens)") loop-log)]
         (let [[in-values in-remaining in-log] 
               (use-parser given-parser remaining loop-log)]
           (if (nil? in-values)
-            [{:values values} remaining (log/commit in-log "Many Success" in-log)]
+            [{:values values} remaining (log/vcommit in-log "Many Success" in-log)]
             (recur in-remaining
                    (concat values (list in-values))
-                   (log/commit in-log "Continuing Many" in-log))))))))
+                   (log/vcommit in-log "Continuing Many" in-log))))))))
 
 (defn many1
   "Parse a single parser at least once."
   [given-parser]
   (fn [tokens log]
-    (let [log (log/commit log "Began many1" log)
+    (let [log (log/vcommit log "Began many1" log)
           [tree remaining in-log] (use-parser (many given-parser) tokens log)]
       (if (empty? (:values tree))
-        [nil remaining (log/commit in-log "Many1 failure" nil)]
-        [tree remaining (log/commit in-log (str "Many1 Success") tree)]))))
+        [nil remaining (log/vcommit in-log "Many1 failure" nil)]
+        [tree remaining (log/vcommit in-log (str "Many1 Success") tree)]))))
 
 (defn from 
   "Parse any parser from a list.
@@ -102,16 +102,16 @@
   ;(println (count parsers))
   ;(println parsers)
   (fn [tokens log] 
-    (let [log (log/commit log "Began from" log)]
+    (let [log (log/vcommit log "Began from" log)]
       (loop [remaining-parsers parsers]
         (if (empty? remaining-parsers)
-          [nil tokens (log/commit log "From failure" log)]
+          [nil tokens (log/vcommit log "From failure" log)]
           (let [[tree remaining in-log] 
                 (use-parser (first remaining-parsers) tokens log)]
             (if (not (nil? tree))
               [tree 
                remaining 
-               (log/commit in-log "From Success" log)]
+               (log/vcommit in-log "From Success" log)]
               (recur (rest remaining-parsers)))))))))
 
 (defn from-except 
@@ -133,11 +133,11 @@
   "Optionally parse a parser"
   [parser]
   (fn [tokens log] 
-    (let [log (log/log log "Begin Optional")
+    (let [log (log/vlog log "Begin Optional")
           [tree remaining in-log] (use-parser parser tokens log)]
       [(if (nil? tree) {} tree)
        remaining
-       (log/commit in-log (str "Ran optional (" 
+       (log/vcommit in-log (str "Ran optional (" 
                             (if (nil? tree) "unsucessfully" "Successfully") ")") 
                    tree)])))
 
@@ -146,11 +146,11 @@
   This is useful for whitespace parsing and similar"
   [parser]
   (fn [tokens log]
-    (let [log (log/log log "Began Discard")
+    (let [log (log/vlog log "Began Discard")
           [tree remaining in-log] (use-parser parser tokens log)]
       (if (nil? tree)
-        [nil remaining (log/commit in-log "Discard failure" in-log)]
-        [{} remaining (log/commit in-log "Discard Success" in-log)]))))
+        [nil remaining (log/vcommit in-log "Discard failure" in-log)]
+        [{} remaining (log/vcommit in-log "Discard Success" in-log)]))))
 
 (defn- extract-sequences 
   "Helper function for the sep-by functions"
@@ -166,20 +166,20 @@
       (let [[tree remaining log1] (use-parser item-parser tokens log)]
         (if (nil? tree)
           (if one
-            [nil remaining (log/commit log1 "Sepby failed" nil)]
-            [{} remaining (log/commit log1 "Sepby stopped w/ no result" {})])
+            [nil remaining (log/vcommit log1 "Sepby failed" nil)]
+            [{} remaining (log/vcommit log1 "Sepby stopped w/ no result" {})])
           (let [[in-tree in-remaining in-log]
                 (((if one many1 many) (conseq [sep-parser item-parser])) 
                  remaining 
                  log1)]
             (if (nil? in-tree)
               (if one
-                [nil in-remaining (log/commit in-log "Sepby failed after separator" nil)]
-                [tree in-remaining (log/commit in-log "Sepby stopped after first element" tree)])
+                [nil in-remaining (log/vcommit in-log "Sepby failed after separator" nil)]
+                [tree in-remaining (log/vcommit in-log "Sepby stopped after first element" tree)])
               [{:values (concat (list tree) 
                                 (extract-sequences in-tree))} 
                in-remaining
-               (log/commit in-log "Sepby finished successfully" in-tree)])))))))
+               (log/vcommit in-log "Sepby finished successfully" in-tree)])))))))
 
 "Separate one parser by another (i.e. a|b|c)"
 (def sep-by  (create-sep-by false))
@@ -215,15 +215,15 @@
   "Retrieve another parser by name from an atomic dictionary"
   [k ptree-atom]
   (fn [tokens log] 
-    (let [log (log/log log "Retrieve")
+    (let [log (log/log log (str "Retrieve: " k))
           result ((get @ptree-atom k) tokens log)]
       result)))
 
 (defn parse [parser log content]
   "Apply a parser to content: pretty much useless"
-  (println "Parsing " content)
+  ;(println "Parsing " content)
   ;(println log)
-  [(parser content log) (log/log log "Parsing finished")])
+  [(parser content log) (log/vlog log "Parsing finished")])
 
 (def whitespace (optional (discard (many (from [(tag "space") (tag "newline")])))))
 (def space (optional (discard (many (tag "space")))))
