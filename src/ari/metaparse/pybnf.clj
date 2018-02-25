@@ -27,23 +27,23 @@
 
 (defparser or-operator (conseq-merge 
                          [(token "(")
+                          (spaced
                           (sep-by1
                             parser-part
-                            (token "|"))
+                            (spaced (token "|"))))
                           (token ")")]))
 
 (defparser many-operator (conseq-merge 
                            [(token "*")
                             (token "(")
-                            parser-part
+                            (spaced parser-part)
                             (token ")")]))
 
 (defparser key-operator (conseq-merge
                           [(token "`")
                            (token "@")
                            (tag "name" :key)
-                           (many1 (token " "))
-                           parser-part
+                           (spaced parser-part)
                            (token "`")]))
 
 (def parser-part (from [or-operator
@@ -54,10 +54,10 @@
                         ]))
 
 (defparser syntax-element (conseq-merge [(tag "name" :name) 
-                              (token ":") 
-                              ;parser-part
-                              (sep-by (spaced parser-part) (spaced (token ",")))
-                              (tag "newline")]))
+                                         spaces
+                                         (token ":") 
+                                         (spaced (sep-by (spaced parser-part) (spaced (token ","))))
+                                         (tag "newline")]))
 
 (defparser separator-def (conseq-merge
                            [(token "__separators__")
@@ -158,7 +158,7 @@
                      separators 
                      special-separators
                      tag-pairs
-                     {:head [:all] :verbosity 15})]
+                     {:head [:all] :verbosity 150})]
     (clojure.pprint/pprint tree)
     (clojure.pprint/pprint remaining)
   (let [clean-tree (add-to-bnf-file (process-bnf-file tree))]
