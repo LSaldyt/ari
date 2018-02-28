@@ -1,0 +1,5 @@
+defines
+header
+$type$ $identifier$ = $expr$
+source
+$type$ $identifier$ = $expr$

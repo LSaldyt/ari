@@ -1,0 +1,16 @@
+declaration
+array_dec
+boolexpression
+expression
+assignment
+main
+forloop
+parenexpr
+class
+string
+whileloop
+statement
+function
+return
+symbollist
+array_init
