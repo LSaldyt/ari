@@ -5,7 +5,8 @@
             [ari.parse.base :refer :all]
             [ari.metaparse.pybnf :refer [pybnf]]
             [ari.metaparse.ebnf :refer [ebnf]]
-            [ari.translate :refer [translate]])
+            [ari.translate :refer [translate]]
+            [ari.experimental.condenser :refer [condense-lisp]])
   (:gen-class))
 
 (def test-separators ["=" " " ">>>" "\n"])
@@ -29,9 +30,12 @@
      :default false :flag true])]
     (when (:help opts)
       (println banner))
-      ;(let [lisp (ebnf (lang "lisp"))]
-      ;  (clojure.pprint/pprint (lisp (sample "simple_lisp.lisp"))))
-      (let [python (pybnf (lang "python3"))])
+      (let [lisp (ebnf (lang "lisp"))
+            [[lisp-tree log]] (lisp (sample "simple_lisp.lisp"))]
+           (clojure.pprint/pprint lisp-tree)
+           (clojure.pprint/pprint (condense-lisp lisp-tree)))
+
+      ;(let [python (pybnf (lang "python3"))])
 
     ; TBNF:
     ; A very interesting point: https://en.wikipedia.org/wiki/Translational_Backus%E2%80%93Naur_form

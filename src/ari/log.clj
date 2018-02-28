@@ -4,10 +4,7 @@
   (let [head (:head log-tree)
         head+ (concat head (list k))
         result (get-in log-tree head+)
-        verb (:verbosity log-tree)
-        log-tree (if result
-                   (assoc log-tree (apply str head+) (concat result (list data)))
-                   (assoc log-tree (apply str head+) (list data)))]
+        verb (:verbosity log-tree)]
     (if (< (count head+) verb)
       (do 
         (when show (println (apply str (repeat (count head+) "  ")) data))

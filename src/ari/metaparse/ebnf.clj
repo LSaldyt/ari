@@ -92,7 +92,7 @@
 (defn process-concatenation [element ptree]
   (let [values (map :con-element (:values element))]
     (let [elements (map #(process-ebnf-element % ptree) values)]
-      (conseq elements))))
+      (conseq-merge elements))))
 
 (defn process-alternation [element ptree]
   (let [values (map :alt-element (:values element))]
@@ -123,7 +123,7 @@
     (retrieve k ptree)))
 
 (defn process-optional [element ptree]
-  (println "HERE " (process-ebnf-element element ptree))
+  ;(println "HERE " (process-ebnf-element element ptree))
   (optional (process-ebnf-element (:element element) ptree)))
 
 (defn process-ebnf-element [element ptree]
@@ -184,6 +184,7 @@
                               {:head [:all] :verbosity 9})))
 
 (defn ebnf [filename]
+  (println "here")
   (let [[[tree remaining ebnf-log] log]
         (read-source filename 
                      (many definition)
@@ -191,13 +192,14 @@
                      special-separators
                      tag-pairs
                      {:head [:all] :verbosity 3})]
-    (println "Log:")
-    (clojure.pprint/pprint log)
-    (println "Tree:")
-    (clojure.pprint/pprint tree)
-    (println "Remaining:")
-    (clojure.pprint/pprint remaining)
+    ;(println "Log:")
+    ;(clojure.pprint/pprint log)
+    ;(println "Tree:")
+    ;(clojure.pprint/pprint tree)
+    ;(println "Remaining:")
+    ;(clojure.pprint/pprint remaining)
+    (println "HERE")
     (let [clean-tree (process-ebnf-tree tree)]
-      (println "Result:")
-      (clojure.pprint/pprint clean-tree)
+      ;(println "Result:")
+      ;(clojure.pprint/pprint clean-tree)
       (create-ebnf-metaparser clean-tree))))

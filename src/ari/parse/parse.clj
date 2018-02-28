@@ -227,6 +227,7 @@
 
 (def whitespace (optional (discard (many (from [(tag "space") (tag "newline")])))))
 (def space (optional (discard (many (tag "space")))))
+(def spaces (optional (discard (many (tag "space")))))
 (defn white [parser] (conseq-merge [whitespace parser whitespace]))
 (defn spaced [parser] (conseq-merge [space parser space]))
 (defn ordered [parsers] (conseq-merge (map white parsers)))

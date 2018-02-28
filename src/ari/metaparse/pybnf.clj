@@ -159,8 +159,8 @@
                      special-separators
                      tag-pairs
                      {:head [:all] :verbosity 150})]
-    (clojure.pprint/pprint tree)
-    (clojure.pprint/pprint remaining)
+    ;(clojure.pprint/pprint tree)
+    ;(clojure.pprint/pprint remaining)
   (let [clean-tree (add-to-bnf-file (process-bnf-file tree))]
     (clojure.pprint/pprint clean-tree)
     (create-metaparser clean-tree))))
