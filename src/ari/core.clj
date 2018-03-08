@@ -30,10 +30,15 @@
      :default false :flag true])]
     (when (:help opts)
       (println banner))
-      (let [lisp (ebnf (lang "lisp"))
-            [[lisp-tree log]] (lisp (sample "simple_lisp.lisp"))]
-           (clojure.pprint/pprint lisp-tree)
-           (clojure.pprint/pprint (condense-lisp lisp-tree)))
+      ;(let [lisp (ebnf (lang "lisp"))
+      ;      [[lisp-tree log]] (lisp (sample "lisp"))]
+      ;     (clojure.pprint/pprint lisp-tree)
+      ;     (clojure.pprint/pprint (condense-lisp lisp-tree)))
+
+      (let [lisp (pybnf (lang "pylisp"))
+            [lisp-tree log] (lisp (sample "lisp"))]
+         (clojure.pprint/pprint lisp-tree)
+         (clojure.pprint/pprint (condense-lisp lisp-tree)))
 
       ;(let [python (pybnf (lang "python3"))])
 
